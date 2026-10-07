@@ -1,0 +1,66 @@
+/*
+Theme Name: NW Fuel
+Theme URI: https://nwfuel.ca
+Author: NW Fuel Injection Services
+Author URI: https://nwfuel.ca
+Description: Custom WooCommerce theme for NW Fuel Injection Services — diesel parts catalog, services, and shop content.
+Version: 1.9.7
+Requires at least: 6.0
+Tested up to: 6.8
+Requires PHP: 8.1
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: nw-fuel
+Tags: custom-menu, custom-logo, featured-images, woocommerce
+*/
+
+/* WordPress compatibility — prevent core styles from breaking layout */
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.site-main {
+  display: block;
+}
+
+.site-main > :first-child {
+  margin-top: 0;
+}
+
+.logo .custom-logo-link {
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.logo .custom-logo,
+.logo .custom-logo-link img,
+.logo__img {
+  display: block;
+  height: 4rem;
+  width: auto;
+  max-width: min(16rem, 58vw);
+}
+
+@media (min-width: 1024px) {
+  .logo .custom-logo,
+  .logo .custom-logo-link img,
+  .logo__img {
+    height: 6rem;
+    max-width: 22rem;
+  }
+}
+
+.woocommerce .woocommerce-breadcrumb,
+.woocommerce-page .woocommerce-breadcrumb {
+  display: none;
+}
+
+.woocommerce-notices-wrapper:empty {
+  display: none;
+}

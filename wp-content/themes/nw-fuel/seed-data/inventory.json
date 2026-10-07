@@ -1,0 +1,66 @@
+{
+  "bosch-common-rail-injector": {
+    "price": 489,
+    "quantity": 8
+  },
+  "bosch-duramax-lml-injector": {
+    "price": 512,
+    "quantity": 4
+  },
+  "bosch-duramax-lbz-injector": {
+    "price": 445,
+    "quantity": 6
+  },
+  "bosch-duramax-lb7-injector": {
+    "price": 398,
+    "quantity": 0
+  },
+  "bosch-powerstroke-67-injector": {
+    "price": 535,
+    "quantity": 3
+  },
+  "alliant-60-powerstroke-injector": {
+    "price": 289,
+    "quantity": 12
+  },
+  "bosch-cp3-pump": {
+    "price": 1249,
+    "quantity": 2
+  },
+  "denso-hp3-pump": {
+    "price": 1895,
+    "quantity": 1
+  },
+  "stanadyne-ds4-pump": {
+    "price": 675,
+    "quantity": 5
+  },
+  "pure-power-turbo": {
+    "price": 1599,
+    "quantity": 3
+  },
+  "garrett-turbocharger": {
+    "price": 1825,
+    "quantity": 2
+  },
+  "stanadyne-performance-formula": {
+    "price": 24.95,
+    "quantity": 48
+  },
+  "stanadyne-cleaning-additive": {
+    "price": 19.95,
+    "quantity": 36
+  },
+  "bosch-urea-diesel-filter": {
+    "price": 89,
+    "quantity": 15
+  },
+  "lb7-injector-set": {
+    "price": 2890,
+    "quantity": 1
+  },
+  "hpop-60-powerstroke": {
+    "price": 449,
+    "quantity": 7
+  }
+}

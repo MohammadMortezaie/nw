@@ -1,0 +1,180 @@
+{
+  "certifications": [
+    {
+      "title": "Bosch Authorized Service Center",
+      "description": "Annual equipment verification, tool checklist compliance, and access to latest Bosch training and service bulletins."
+    },
+    {
+      "title": "Bosch Common Rail Injector Rebuilders",
+      "description": "Certified since 2018 with laboratory-grade clean room and training at Bosch Chicago facility."
+    },
+    {
+      "title": "First EPS205 in Western Canada",
+      "description": "Pioneer in computerized common rail injector testing with the Bosch EPS205 test bench."
+    },
+    {
+      "title": "Denso HP Pump Rebuild — Only in BC",
+      "description": "The only shop in British Columbia certified to rebuild Denso high-pressure common rail pumps."
+    },
+    {
+      "title": "Association of Diesel Specialists",
+      "description": "ADS member with leadership on the Board of Directors, representing the highest standards in diesel service."
+    }
+  ],
+  "companyValues": [
+    {
+      "title": "Quality First",
+      "description": "We never offer a product or service we wouldn't install on our own vehicles."
+    },
+    {
+      "title": "Honest Diagnostics",
+      "description": "Replace only what needs fixing. Our testing identifies exactly which components require service."
+    },
+    {
+      "title": "Long-Term Partnerships",
+      "description": "Diesel repair is a collaborative relationship, not a quick transaction. Many clients have been with us since the beginning."
+    },
+    {
+      "title": "Technical Excellence",
+      "description": "Bosch-authorized with cutting-edge equipment, continuous training, and industry leadership since 1968."
+    }
+  ],
+  "industries": [
+    {
+      "icon": "light-truck",
+      "name": "Light-Duty Trucks",
+      "description": "Ford Powerstroke, Dodge Cummins, GM Duramax"
+    },
+    {
+      "icon": "heavy-duty",
+      "name": "Medium & Heavy-Duty",
+      "description": "Class 4–8 trucks, buses, vocational vehicles"
+    },
+    {
+      "icon": "industrial",
+      "name": "Industrial & Off-Road",
+      "description": "John Deere, Yanmar, CAT, Cummins industrial"
+    },
+    {
+      "icon": "marine",
+      "name": "Marine",
+      "description": "Volvo Penta and marine diesel applications"
+    },
+    {
+      "icon": "agricultural",
+      "name": "Agricultural",
+      "description": "Farm equipment and agricultural diesel systems"
+    },
+    {
+      "icon": "fleet",
+      "name": "Fleet Operators",
+      "description": "Light, medium, and heavy-duty fleet maintenance"
+    }
+  ],
+  "partnerBrands": [
+    "Bosch",
+    "Denso",
+    "Delphi",
+    "Stanadyne",
+    "Alliant Power",
+    "Pure Power",
+    "Yanmar",
+    "Cummins",
+    "Garrett",
+    "Holset",
+    "Borg Warner",
+    "Siemens",
+    "Dipaco",
+    "Zexel",
+    "Howes",
+    "Racor",
+    "Bulletproof Diesel",
+    "Steinbauer"
+  ],
+  "team": [
+    {
+      "name": "Gord Reid",
+      "role": "Co-Owner & Operations",
+      "description": "Operations Manager since 1996, co-owner since 2008. ADS Board of Directors."
+    },
+    {
+      "name": "Arran Reid",
+      "role": "Co-Owner",
+      "description": "Co-owner since 2008, guiding company strategy and growth."
+    },
+    {
+      "name": "James",
+      "role": "Shop Foreman",
+      "description": "Shop Foreman since joining in 2003. Oversees daily workshop operations."
+    },
+    {
+      "name": "Dean",
+      "role": "Operations",
+      "description": "Manages day-to-day operations since 2006."
+    },
+    {
+      "name": "Jef",
+      "role": "Senior Technician",
+      "description": "With NW Fuel since 1992 — decades of diesel injection expertise."
+    },
+    {
+      "name": "Grant Williamson",
+      "role": "Island Diesel Manager",
+      "description": "Manages the Nanaimo Island Diesel location since 2016."
+    }
+  ],
+  "timeline": [
+    {
+      "year": "1968",
+      "event": "Hans Rusch opens NW Fuel Injection in New Westminster"
+    },
+    {
+      "year": "1977",
+      "event": "Nanaimo location established"
+    },
+    {
+      "year": "1983",
+      "event": "Hans Rusch reacquires business — NW Fuel Injection (1983) Ltd."
+    },
+    {
+      "year": "1989",
+      "event": "Ken & Faith Byron purchase the company"
+    },
+    {
+      "year": "1996",
+      "event": "Gord Reid joins as Operations Manager"
+    },
+    {
+      "year": "2003",
+      "event": "Moves to Port Kells, Surrey — current head office"
+    },
+    {
+      "year": "2008",
+      "event": "Gord & Arran Reid become owners"
+    },
+    {
+      "year": "2013",
+      "event": "First Bosch common rail injector test machine in Canada"
+    },
+    {
+      "year": "2016",
+      "event": "Island Diesel Injection opens in Nanaimo"
+    },
+    {
+      "year": "2018",
+      "event": "Bosch common rail rebuild certification; 50th anniversary"
+    },
+    {
+      "year": "Today",
+      "event": "14 employees, two locations, serving all of Canada"
+    }
+  ],
+  "workshopEquipment": [
+    "Bosch EPS205 Common Rail Test Bench",
+    "Hartridge HI2000 HEUI Test Stand",
+    "Hartridge AVM2PC EUI Test Equipment",
+    "ASNU Classic GDI Ultrasonic Cleaner",
+    "Laboratory-Grade Clean Room",
+    "Bosch EPS815 Test Bench (Island Diesel)"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "homeFaqs": [
+    {
+      "question": "Where is NW Fuel located?",
+      "answer": "Our head office is at #101-18940 94th Ave, Surrey, BC — on the north side of Highway 1, beside Finning. We also have a sister location, Island Diesel, in Nanaimo at #8, 1975 Boxwood Road."
+    },
+    {
+      "question": "What are your business hours?",
+      "answer": "We are open Monday through Friday, 8:00 AM to 4:30 PM. We are closed on all statutory holidays."
+    },
+    {
+      "question": "What brands of diesel parts do you carry?",
+      "answer": "We carry Bosch, Pure Power, Alliant Power, Stanadyne, Yanmar, Delphi, Dipaco, Denso, FASS, and many more. We never offer something we wouldn't install on our own vehicles."
+    },
+    {
+      "question": "What warranty do you offer?",
+      "answer": "All products and service work carry a 12-month unlimited km warranty from the invoice date."
+    },
+    {
+      "question": "Why don't you provide quotes over the phone?",
+      "answer": "Our technicians need to physically inspect and test your components to provide an accurate quote. We always get approval before proceeding with any work beyond initial testing."
+    },
+    {
+      "question": "Can you test my injectors?",
+      "answer": "We can test 99% of common rail, HEUI, and EUI injectors. For unusual applications, call us first. Mechanical injectors start at $16, common rail at $65."
+    }
+  ],
+  "contactFaqs": [
+    {
+      "question": "Do you offer emergency service?",
+      "answer": "For urgent diesel injection issues during business hours, call us directly at (604) 882-3835. Our team will prioritize your request based on severity and current workload."
+    },
+    {
+      "question": "Can I drop off injectors without an appointment?",
+      "answer": "Yes, walk-ins are welcome during business hours. For faster service, we recommend calling ahead so we can prepare for your specific injector type."
+    }
+  ]
+}

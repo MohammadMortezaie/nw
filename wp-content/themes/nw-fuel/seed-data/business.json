@@ -1,0 +1,27 @@
+{
+  "name": "NW Fuel Injection Services Ltd.",
+  "shortName": "NW Fuel",
+  "tagline": "Diesel Done Right",
+  "description": "Bosch authorized diesel injection shop in Surrey, BC. Injector testing, pump rebuilds, common rail repair, and OEM diesel parts since 1968.",
+  "phone": "(604) 882-3835",
+  "fax": "(604) 882-3887",
+  "email": "info@nwfuel.ca",
+  "address": {
+    "street": "#101-18940 94th Ave",
+    "city": "Surrey",
+    "province": "BC",
+    "postalCode": "V3V 1N1",
+    "country": "CA"
+  },
+  "geo": {
+    "latitude": 49.1913,
+    "longitude": -122.849
+  },
+  "hours": "Monday to Friday, 8:00 AM to 4:30 PM",
+  "social": {
+    "facebook": "https://www.facebook.com/NwFuel",
+    "twitter": "https://twitter.com/nwfuelinjection",
+    "instagram": "https://www.instagram.com/nwfuel",
+    "linkedin": "https://www.linkedin.com/company/4663444"
+  }
+}

@@ -1,0 +1,25 @@
+# This repository contains the custom site code, not a full WordPress install.
+/*
+
+# Repository documentation and configuration.
+!/.gitignore
+!/README.md
+
+# Custom code that belongs to this project.
+!/wp-content/
+/wp-content/*
+!/wp-content/themes/
+/wp-content/themes/*
+!/wp-content/themes/nw-fuel/
+!/wp-content/themes/nw-fuel/**
+
+# Never commit local/generated files that may appear inside custom code.
+**/.DS_Store
+**/*.log
+**/.env
+**/.env.*
+**/node_modules/
+**/vendor/
+**/dist/
+**/build/
+

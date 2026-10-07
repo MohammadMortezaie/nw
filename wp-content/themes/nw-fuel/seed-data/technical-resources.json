@@ -1,0 +1,132 @@
+[
+  {
+    "slug": "bosch-urea-diesel-filter-guide",
+    "title": "Bosch Urea Diesel Filter Guide",
+    "excerpt": "Bosch urea diesel filter part 1 457 436 033, SCR system basics, features, PDF downloads, and Class 4 through Class 8 application coverage.",
+    "description": "Medium and heavy duty trucks manufactured starting on January 1, 2010 are required to meet EPA emission standards. Many truck manufacturers use selective catalytic reduction technology, where Bosch dosing systems inject urea into the exhaust so it can interact with the SCR catalyst and reduce NOx emissions. The Bosch urea diesel filter protects the supply module by filtering urea before it reaches the dosing module.",
+    "image": "/assets/img/technical-resources/bosch-urea-diesel-filter.png",
+    "imageAlt": "Bosch urea diesel filter part 1 457 436 033 for SCR diesel truck dosing systems",
+    "imageContain": true,
+    "resourceSections": [
+      {
+        "eyebrow": "SCR System Filter",
+        "title": "Bosch Urea Diesel Filter Part 1 457 436 033",
+        "text": "The Bosch Urea Filter for diesel applications is designed for and supplied to original equipment manufacturers. Bosch states that this single SKU covers up to 69 percent of Class 4 through Class 8 trucks in operation, making it a practical stock item for diesel repair shops, fleets, and parts counters.",
+        "image": {
+          "src": "/assets/img/technical-resources/urea-diesel-filter-features.jpg",
+          "alt": "Features of Bosch urea diesel filter with O rings equalizing element and extraction tool"
+        },
+        "items": [
+          "High capacity media provides protection to original equipment manufacturer change intervals.",
+          "Included O rings provide a tight seal which helps prevent leaks.",
+          "The Bosch exclusive equalizing element buffers pressure within the pump by expanding and contracting to help prevent cracking on internal components.",
+          "The supplied extraction tool makes filter removal easier."
+        ]
+      },
+      {
+        "eyebrow": "Maintenance Note",
+        "title": "Replace During Scheduled Service",
+        "text": "As part of the SCR dosing system, the supply module contains a main filter that filters urea being pumped into the dosing module. That filter should be replaced according to the manufacturer's scheduled maintenance requirements. Keeping the filter current helps protect the dosing module and supports correct SCR system operation.",
+        "items": [
+          "Supports SCR dosing system maintenance.",
+          "Filters urea before it reaches the dosing module.",
+          "Helps protect the supply module and dosing components.",
+          "Useful for medium duty and heavy duty truck service planning."
+        ]
+      }
+    ],
+    "applicationTable": {
+      "title": "Bosch Urea Filter 1 457 436 033 Application Coverage",
+      "text": "The table below follows the original Bosch urea diesel filter application guide layout by truck class.",
+      "columns": ["Class 8", "Class 7", "Class 6", "Class 5", "Class 4"],
+      "rows": [
+        {"Class 8": "American LaFrance", "Class 7": "Blue Bird", "Class 6": "Freightliner", "Class 5": "Freightliner", "Class 4": "Freightliner"},
+        {"Class 8": "Autocar", "Class 7": "El Dorado", "Class 6": "Sterling", "Class 5": "Dodge Chassis Cab", "Class 4": "Hino"},
+        {"Class 8": "Crane Carrier", "Class 7": "Ford", "Class 6": "Hino", "Class 5": "Hino", "Class 4": "UD Truck"},
+        {"Class 8": "El Dorado", "Class 7": "Freightliner", "Class 6": "UD Truck", "Class 5": "UD Truck", "Class 4": "Dodge Chassis Cab"},
+        {"Class 8": "Emergency One", "Class 7": "Hino", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Freightliner", "Class 7": "International Navistar", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Gillig", "Class 7": "Kenworth", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "International Navistar", "Class 7": "Peterbilt", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Kalmar", "Class 7": "Spartan", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Kenworth", "Class 7": "Sterling", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Mack", "Class 7": "Thomas Bus", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Orion", "Class 7": "UD Truck", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Oshkosh", "Class 7": "Volvo", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Peterbilt", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Pierce", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Roadmaster", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Spartan", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Terex", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Thomas Bus", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Van Hool Bus", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Volvo", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""},
+        {"Class 8": "Western Star", "Class 7": "", "Class 6": "", "Class 5": "", "Class 4": ""}
+      ]
+    },
+    "downloads": [
+      {
+        "title": "Application Guide",
+        "text": "Download the Bosch urea diesel filter application guide PDF for Class 4 through Class 8 coverage.",
+        "label": "Download Application Guide",
+        "href": "/assets/files/technical-resources/urea-diesel-application-guide.pdf",
+        "image": {
+          "src": "/assets/img/technical-resources/bosch-filter-guide.png",
+          "alt": "Bosch urea diesel filter application guide PDF cover"
+        }
+      },
+      {
+        "title": "Reference Sheet",
+        "text": "Download the Bosch urea diesel filter feature sheet PDF with product details and service information.",
+        "label": "Download Reference Sheet",
+        "href": "/assets/files/technical-resources/urea-diesel-flyer.pdf",
+        "image": {
+          "src": "/assets/img/technical-resources/bosch-filter-flyer.png",
+          "alt": "Bosch urea diesel filter reference sheet PDF cover"
+        }
+      }
+    ],
+    "metaTitle": "Bosch Urea Diesel Filter Guide",
+    "metaDescription": "Bosch urea diesel filter guide for SCR systems. Part 1 457 436 033 features, Class 4 to Class 8 application table, and PDF downloads from NW Fuel in Surrey BC."
+  },
+  {
+    "slug": "ford-powerstroke-installation-guide",
+    "title": "Ford Powerstroke Installation Guide",
+    "excerpt": "Installation notes for Ford Powerstroke injectors, including 6.0L HEUI and 6.7L common rail applications.",
+    "description": "Proper injector installation on Ford Powerstroke engines prevents comebacks. This guide covers torque specs, copper washer handling, oil supply concerns on 6.0L HEUI systems, and post-install checks for 6.7L common rail trucks.",
+    "image": "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1200&q=80&auto=format&fit=crop",
+    "imageAlt": "Ford Powerstroke diesel truck used for injector installation reference",
+    "metaTitle": "Ford Powerstroke Installation Guide",
+    "metaDescription": "Ford Powerstroke injector installation guide for diesel repair shops. Tips for 6.0L and 6.7L applications from NW Fuel in Surrey, BC."
+  },
+  {
+    "slug": "dodge-cummins-installation-guide",
+    "title": "Dodge Cummins Installation Guide",
+    "excerpt": "Installation guidance for Dodge and Ram Cummins common rail injectors and related service points.",
+    "description": "Cummins common rail injectors on Dodge and Ram trucks require clean handling and correct torque. This guide outlines tube nut care, injector hold-down torque, leak-off routing, and basic post-install verification for 5.9L and 6.7L platforms.",
+    "image": "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80&auto=format&fit=crop",
+    "imageAlt": "Diesel engine used for Dodge Cummins injector installation reference",
+    "metaTitle": "Dodge Cummins Installation Guide",
+    "metaDescription": "Dodge Cummins injector installation guide for 5.9L and 6.7L common rail engines. Technical notes from NW Fuel Injection Services."
+  },
+  {
+    "slug": "gm-duramax-installation-guide",
+    "title": "GM Duramax Installation Guide",
+    "excerpt": "Step by step installation notes for GM 6.6L Duramax common rail injectors.",
+    "description": "Duramax injector installs demand attention to sealing surfaces, hold-down bolt torque, and fuel system cleanliness. This guide covers LB7, LBZ, LMM, and LML considerations shops see most often in the field.",
+    "image": "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1200&q=80&auto=format&fit=crop",
+    "imageAlt": "Commercial truck used for GM Duramax injector installation reference",
+    "metaTitle": "GM Duramax Installation Guide",
+    "metaDescription": "GM Duramax injector installation guide for 6.6L diesel engines. LB7 through LML notes from NW Fuel in Surrey, BC."
+  },
+  {
+    "slug": "duramax-diesel-injector-guide",
+    "title": "Duramax Diesel Injector Guide",
+    "excerpt": "How to identify worn Duramax injectors, when to test, and what replacement options shops have.",
+    "description": "Hard starts, rough idle, smoke, and codes often trace back to injector wear on Duramax engines. This guide explains common failure signs by generation, when bench testing makes sense, and how to match the right Bosch injector to the application.",
+    "image": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1600&q=80&auto=format&fit=crop",
+    "imageAlt": "Diesel workshop used for Duramax injector testing and replacement notes",
+    "metaTitle": "Duramax Diesel Injector Guide",
+    "metaDescription": "Duramax diesel injector guide covering symptoms, testing, and replacement options. From NW Fuel Injection Services Surrey BC."
+  }
+]

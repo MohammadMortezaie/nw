@@ -1,0 +1,906 @@
+{
+    "products": [
+        {
+            "slug": "bosch-common-rail-injector",
+            "name": "Bosch Common Rail Injector",
+            "partNumber": "0 986 435 518",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "OEM-quality Bosch common rail injector for 6.7L Cummins applications.",
+            "description": "Genuine Bosch common rail injector engineered for 6.7L Cummins diesel engines. Factory-spec flow rates, spray patterns, and durability backed by NW Fuel's 12-month unlimited km warranty.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg",
+                "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0123"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 518"
+                },
+                {
+                    "label": "Brand",
+                    "value": "Bosch"
+                },
+                {
+                    "label": "Type",
+                    "value": "Common Rail Solenoid"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.7L Cummins"
+                },
+                {
+                    "label": "Warranty",
+                    "value": "12 months unlimited km"
+                }
+            ],
+            "compatibleVehicles": [
+                "2007.5\u20132018 Dodge Ram 2500/3500 6.7L Cummins",
+                "2011\u20132018 Ram 2500/3500 6.7L Cummins"
+            ],
+            "features": [
+                "OEM-spec flow rates and spray patterns",
+                "Factory-approved remanufacturing available",
+                "Complimentary gaskets and seals with rebuild",
+                "Pre-tested before shipment"
+            ],
+            "relatedSlugs": [
+                "bosch-duramax-lml-injector",
+                "bosch-cp3-pump",
+                "stanadyne-performance-formula"
+            ],
+            "faqs": [
+                {
+                    "question": "Is this a new or remanufactured injector?",
+                    "answer": "We offer both new OEM and factory-approved remanufactured options. Contact us for current availability and pricing."
+                }
+            ],
+            "metaTitle": "Bosch Common Rail Injector 0 986 435 518",
+            "metaDescription": "Bosch common rail injector for 6.7L Cummins. Part 0 986 435 518. OEM quality with 12-month warranty. Request a quote from NW Fuel Surrey BC.",
+            "code": "AB0123"
+        },
+        {
+            "slug": "bosch-duramax-lml-injector",
+            "name": "Bosch Duramax LML Injector",
+            "partNumber": "0 986 435 410",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch common rail injector for GM 6.6L Duramax LML engines (2011\u20132016).",
+            "description": "Precision-engineered Bosch injector for the GM 6.6L Duramax LML platform. Meets or exceeds OEM specifications for flow rate, pilot injection timing, and emissions compliance.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0124"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 410"
+                },
+                {
+                    "label": "Brand",
+                    "value": "Bosch"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.6L Duramax LML"
+                },
+                {
+                    "label": "Years",
+                    "value": "2011\u20132016"
+                },
+                {
+                    "label": "Warranty",
+                    "value": "12 months unlimited km"
+                }
+            ],
+            "compatibleVehicles": [
+                "2011\u20132016 Chevrolet Silverado 2500HD/3500HD 6.6L Duramax",
+                "2011\u20132016 GMC Sierra 2500HD/3500HD 6.6L Duramax"
+            ],
+            "features": [
+                "OEM-spec calibration",
+                "Emissions compliant",
+                "Factory reman available"
+            ],
+            "relatedSlugs": [
+                "bosch-common-rail-injector",
+                "bosch-duramax-lbz-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch Duramax LML Injector 0 986 435 410",
+            "metaDescription": "Bosch Duramax LML injector part 0 986 435 410 for 2011\u20132016 GM 6.6L diesel. Request a quote from NW Fuel Injection Services.",
+            "code": "AB0124"
+        },
+        {
+            "slug": "bosch-duramax-lbz-injector",
+            "name": "Bosch Duramax LBZ Injector",
+            "partNumber": "0 986 435 521",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch injector for GM 6.6L Duramax LBZ engines (2006\u20132007).",
+            "description": "OEM-quality Bosch common rail injector for the popular LBZ Duramax platform, known for reliability and performance.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0125"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 521"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.6L Duramax LBZ"
+                },
+                {
+                    "label": "Years",
+                    "value": "2006\u20132007"
+                }
+            ],
+            "compatibleVehicles": [
+                "2006\u20132007 Chevrolet Silverado/GMC Sierra 2500HD/3500HD 6.6L Duramax LBZ"
+            ],
+            "features": [
+                "OEM-spec flow rates",
+                "12-month warranty"
+            ],
+            "relatedSlugs": [
+                "bosch-duramax-lml-injector",
+                "bosch-duramax-lb7-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch Duramax LBZ Injector 0 986 435 521",
+            "metaDescription": "Bosch Duramax LBZ injector for 2006\u20132007 GM 6.6L diesel. Part 0 986 435 521. NW Fuel Injection Services Surrey BC.",
+            "code": "AB0125"
+        },
+        {
+            "slug": "bosch-duramax-lb7-injector",
+            "name": "Bosch Duramax LB7 Injector",
+            "partNumber": "0 986 435 502",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch injector for the original GM 6.6L Duramax LB7 (2001\u20132004).",
+            "description": "Factory-spec Bosch injector for the pioneering LB7 Duramax engine. Available new and remanufactured with full testing documentation.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0126"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 502"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.6L Duramax LB7"
+                },
+                {
+                    "label": "Years",
+                    "value": "2001\u20132004"
+                }
+            ],
+            "compatibleVehicles": [
+                "2001\u20132004 Chevrolet Silverado/GMC Sierra 2500HD/3500HD 6.6L Duramax LB7"
+            ],
+            "features": [
+                "LB7-specific calibration",
+                "Rebuild service available"
+            ],
+            "relatedSlugs": [
+                "bosch-duramax-lbz-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch Duramax LB7 Injector 0 986 435 502",
+            "metaDescription": "Bosch Duramax LB7 injector part 0 986 435 502. Original 6.6L Duramax common rail injector. NW Fuel Surrey BC.",
+            "code": "AB0126"
+        },
+        {
+            "slug": "bosch-powerstroke-67-injector",
+            "name": "Bosch 6.7L Powerstroke Injector",
+            "partNumber": "0 986 435 415",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch common rail injector for Ford 6.7L Powerstroke diesel engines.",
+            "description": "OEM Bosch piezo injector for Ford 6.7L Powerstroke applications. Precision-tested and backed by NW Fuel's comprehensive warranty.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/4359487.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/4359487.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0127"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 415"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.7L Powerstroke"
+                },
+                {
+                    "label": "Type",
+                    "value": "Piezo Common Rail"
+                }
+            ],
+            "compatibleVehicles": [
+                "2011+ Ford F-250/F-350/F-450/F-550 6.7L Powerstroke"
+            ],
+            "features": [
+                "Piezo actuator technology",
+                "OEM-spec performance"
+            ],
+            "relatedSlugs": [
+                "bosch-common-rail-injector",
+                "alliant-60-powerstroke-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch 6.7L Powerstroke Injector 0 986 435 415",
+            "metaDescription": "Bosch 6.7L Powerstroke injector part 0 986 435 415. OEM piezo common rail injector. Request a quote from NW Fuel.",
+            "code": "AB0127"
+        },
+        {
+            "slug": "alliant-60-powerstroke-injector",
+            "name": "Alliant Power 6.0L HEUI Injector",
+            "partNumber": "AP60900",
+            "brand": "Alliant Power",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "HEUI"
+            ],
+            "shortDescription": "Alliant Power HEUI injector for Ford 6.0L Powerstroke engines.",
+            "description": "Premium Alliant Power HEUI injector for 6.0L Powerstroke applications. Engineered for improved reliability over original equipment.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/2897320.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/2897320.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0128"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "AP60900"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.0L Powerstroke"
+                },
+                {
+                    "label": "Type",
+                    "value": "HEUI"
+                }
+            ],
+            "compatibleVehicles": [
+                "2003\u20132007 Ford F-250/F-350 6.0L Powerstroke"
+            ],
+            "features": [
+                "Improved stiction resistance",
+                "HEUI-specific design"
+            ],
+            "relatedSlugs": [
+                "bosch-powerstroke-67-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Alliant Power 6.0L HEUI Injector AP60900",
+            "metaDescription": "Alliant Power 6.0L Powerstroke HEUI injector AP60900. Premium replacement injector. NW Fuel Injection Services BC.",
+            "code": "AB0128"
+        },
+        {
+            "slug": "bosch-cp3-pump",
+            "name": "Bosch CP3 High-Pressure Pump",
+            "partNumber": "0 445 020 007",
+            "brand": "Bosch",
+            "category": "Pumps & Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch CP3 high-pressure fuel pump for Duramax and Cummins common rail systems.",
+            "description": "The industry-standard Bosch CP3 high-pressure fuel pump delivers reliable fuel pressure for common rail diesel systems. Available new and remanufactured with factory-authorized rebuild service.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0129"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 445 020 007"
+                },
+                {
+                    "label": "Type",
+                    "value": "CP3 High-Pressure Pump"
+                },
+                {
+                    "label": "Applications",
+                    "value": "Duramax, Cummins CR"
+                }
+            ],
+            "compatibleVehicles": [
+                "GM 6.6L Duramax LBZ/LMM/LML",
+                "Dodge 5.9L/6.7L Cummins (select applications)"
+            ],
+            "features": [
+                "Factory rebuild available",
+                "Bosch-authorized service",
+                "CORE exchange program"
+            ],
+            "relatedSlugs": [
+                "denso-hp3-pump",
+                "stanadyne-ds4-pump"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch CP3 High-Pressure Fuel Pump",
+            "metaDescription": "Bosch CP3 high-pressure fuel pump for Duramax and Cummins. Factory rebuild service available. NW Fuel Injection Services Surrey BC.",
+            "code": "AB0129"
+        },
+        {
+            "slug": "denso-hp3-pump",
+            "name": "Denso HP3 Common Rail Pump",
+            "partNumber": "294000-0059",
+            "brand": "Denso",
+            "category": "Pumps & Injectors",
+            "vehicleType": [
+                "Medium/Heavy Duty",
+                "Industrial/Off-Road"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Denso HP3 high-pressure common rail pump. NW Fuel is BC's only authorized Denso HP pump rebuilder.",
+            "description": "Denso HP3 high-pressure common rail pump for Isuzu, Hino, John Deere, Mitsubishi, and Toyota applications. NW Fuel is the only shop in British Columbia certified to rebuild Denso HP common rail pumps.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0130"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "294000-0059"
+                },
+                {
+                    "label": "Type",
+                    "value": "HP3 Common Rail"
+                },
+                {
+                    "label": "Rebuild",
+                    "value": "BC's only authorized Denso HP rebuilder"
+                }
+            ],
+            "compatibleVehicles": [
+                "Isuzu N-Series",
+                "Hino trucks",
+                "John Deere industrial",
+                "Toyota HD diesel"
+            ],
+            "features": [
+                "Only BC Denso HP rebuild certification",
+                "Factory-spec rebuild",
+                "12-month warranty"
+            ],
+            "relatedSlugs": [
+                "bosch-cp3-pump"
+            ],
+            "faqs": [],
+            "metaTitle": "Denso HP3 Common Rail Pump Rebuild BC",
+            "metaDescription": "Denso HP3 common rail pump. Only BC shop certified for Denso HP pump rebuilds. Isuzu, Hino, John Deere applications.",
+            "code": "AB0130"
+        },
+        {
+            "slug": "stanadyne-ds4-pump",
+            "name": "Stanadyne DS4 Injection Pump",
+            "partNumber": "DB2833-5964",
+            "brand": "Stanadyne",
+            "category": "Pumps & Injectors",
+            "vehicleType": [
+                "Light Duty Truck",
+                "Agricultural"
+            ],
+            "engineType": [
+                "Mechanical"
+            ],
+            "shortDescription": "Stanadyne DS4 rotary distributor injection pump rebuild and exchange.",
+            "description": "Factory-authorized Stanadyne DS4 pump rebuilds for agricultural, light commercial, and legacy diesel applications.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0131"
+                },
+                {
+                    "label": "Brand",
+                    "value": "Stanadyne"
+                },
+                {
+                    "label": "Type",
+                    "value": "DS4 Rotary Distributor"
+                }
+            ],
+            "compatibleVehicles": [
+                "Various agricultural and light commercial diesel engines"
+            ],
+            "features": [
+                "Stanadyne-authorized rebuild",
+                "Exchange program available"
+            ],
+            "relatedSlugs": [
+                "bosch-cp3-pump"
+            ],
+            "faqs": [],
+            "metaTitle": "Stanadyne DS4 Injection Pump Rebuild",
+            "metaDescription": "Stanadyne DS4 injection pump rebuilding and exchange. Factory-authorized service from NW Fuel Injection Services BC.",
+            "code": "AB0131"
+        },
+        {
+            "slug": "pure-power-turbo",
+            "name": "Pure Power Remanufactured Turbo",
+            "partNumber": "PPT-VGT-001",
+            "brand": "Pure Power",
+            "category": "Turbos",
+            "vehicleType": [
+                "Light Duty Truck",
+                "Medium/Heavy Duty"
+            ],
+            "engineType": [
+                "Common Rail",
+                "EUI"
+            ],
+            "shortDescription": "Pure Power Technologies remanufactured turbo \u2014 exclusively available at NW Fuel.",
+            "description": "Through our exclusive partnership with Pure Power Technologies, NW Fuel offers remanufactured turbochargers that meet rigorous quality standards for both conventional and variable geometry applications.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0132"
+                },
+                {
+                    "label": "Brand",
+                    "value": "Pure Power Technologies"
+                },
+                {
+                    "label": "Type",
+                    "value": "Remanufactured VGT/Fixed"
+                },
+                {
+                    "label": "Availability",
+                    "value": "Exclusive at NW Fuel"
+                }
+            ],
+            "compatibleVehicles": [
+                "Multiple light and medium-duty diesel applications"
+            ],
+            "features": [
+                "Exclusive NW Fuel partnership",
+                "VGT and conventional options",
+                "Rebuild and exchange available"
+            ],
+            "relatedSlugs": [
+                "garrett-turbocharger"
+            ],
+            "faqs": [],
+            "metaTitle": "Pure Power Remanufactured Turbocharger",
+            "metaDescription": "Pure Power Technologies remanufactured turbos exclusively at NW Fuel. VGT and conventional turbo rebuilding Surrey BC.",
+            "code": "AB0132"
+        },
+        {
+            "slug": "garrett-turbocharger",
+            "name": "Garrett Turbocharger",
+            "partNumber": "GTB2260VK",
+            "brand": "Garrett",
+            "category": "Turbos",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Garrett turbocharger for common rail diesel applications.",
+            "description": "Garrett turbochargers for light-duty and performance diesel applications. Available for purchase and professional installation support.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/4359487.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/4359487.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0133"
+                },
+                {
+                    "label": "Brand",
+                    "value": "Garrett"
+                },
+                {
+                    "label": "Type",
+                    "value": "Variable Geometry"
+                }
+            ],
+            "compatibleVehicles": [
+                "Various common rail diesel applications"
+            ],
+            "features": [
+                "OEM-quality engineering",
+                "Professional installation support"
+            ],
+            "relatedSlugs": [
+                "pure-power-turbo"
+            ],
+            "faqs": [],
+            "metaTitle": "Garrett Turbocharger",
+            "metaDescription": "Garrett turbochargers for diesel applications. Available from NW Fuel Injection Services with expert technical support.",
+            "code": "AB0133"
+        },
+        {
+            "slug": "stanadyne-performance-formula",
+            "name": "Stanadyne Performance Formula",
+            "partNumber": "38565",
+            "brand": "Stanadyne",
+            "category": "Fuel Additives",
+            "vehicleType": [
+                "Light Duty Truck",
+                "Medium/Heavy Duty",
+                "Agricultural",
+                "Industrial/Off-Road"
+            ],
+            "engineType": [
+                "Common Rail",
+                "HEUI",
+                "EUI",
+                "Mechanical"
+            ],
+            "shortDescription": "Premium diesel fuel additive for lubricity, cetane enhancement, and fuel economy.",
+            "description": "Stanadyne Performance Formula is the only fuel additive backed by major engine OEMs. Improves lubricity, enhances cetane, restores fuel economy, and protects common rail fuel systems.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/2897320.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/2897320.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0134"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "38565"
+                },
+                {
+                    "label": "Size",
+                    "value": "473ml / 3.785L"
+                },
+                {
+                    "label": "Treats",
+                    "value": "Up to 250 gallons per 8oz"
+                }
+            ],
+            "compatibleVehicles": [
+                "All diesel engines \u2014 common rail, HEUI, mechanical"
+            ],
+            "features": [
+                "OEM-backed formula",
+                "Cetane enhancement",
+                "Fuel system lubricity",
+                "Shop distribution available"
+            ],
+            "relatedSlugs": [
+                "stanadyne-cleaning-additive"
+            ],
+            "faqs": [],
+            "metaTitle": "Stanadyne Performance Formula Diesel Additive",
+            "metaDescription": "Stanadyne Performance Formula diesel fuel additive. Lubricity, cetane, and fuel economy. Distributed by NW Fuel Injection Services.",
+            "code": "AB0134"
+        },
+        {
+            "slug": "stanadyne-cleaning-additive",
+            "name": "Stanadyne Cleaning Additive",
+            "partNumber": "43566",
+            "brand": "Stanadyne",
+            "category": "Fuel Additives",
+            "vehicleType": [
+                "Light Duty Truck",
+                "Medium/Heavy Duty"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Diesel fuel system cleaning additive for common rail engines.",
+            "description": "Stanadyne Cleaning Additive is designed for occasional use on common rail engines to remove deposits and maintain injector performance.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/2872331.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0135"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "43566"
+                },
+                {
+                    "label": "Use",
+                    "value": "Occasional common rail cleaning"
+                }
+            ],
+            "compatibleVehicles": [
+                "Common rail diesel engines"
+            ],
+            "features": [
+                "Deposit removal",
+                "Injector performance maintenance"
+            ],
+            "relatedSlugs": [
+                "stanadyne-performance-formula"
+            ],
+            "faqs": [],
+            "metaTitle": "Stanadyne Cleaning Additive for Common Rail",
+            "metaDescription": "Stanadyne diesel cleaning additive for common rail engines. Maintain injector performance. Available from NW Fuel BC.",
+            "code": "AB0135"
+        },
+        {
+            "slug": "bosch-urea-diesel-filter",
+            "name": "Bosch Urea Diesel Filter",
+            "partNumber": "1 457 436 033",
+            "brand": "Bosch",
+            "category": "Filters",
+            "vehicleType": [
+                "Commercial Vehicle",
+                "Medium/Heavy Duty"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Bosch urea diesel filter covering up to 69% of Class 4\u20138 trucks.",
+            "description": "Bosch urea diesel filter (DEF filter) compatible with a wide range of Class 4\u20138 commercial trucks including Freightliner, Hino, International, Kenworth, Peterbilt, Mack, and Volvo.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/n14-4.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0136"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "1 457 436 033"
+                },
+                {
+                    "label": "Coverage",
+                    "value": "Up to 69% of Class 4\u20138 trucks"
+                },
+                {
+                    "label": "Type",
+                    "value": "Urea/DEF Filter"
+                }
+            ],
+            "compatibleVehicles": [
+                "Freightliner",
+                "Hino",
+                "International/Navistar",
+                "Kenworth",
+                "Peterbilt",
+                "Mack",
+                "Volvo Class 4\u20138 trucks"
+            ],
+            "features": [
+                "Wide commercial truck coverage",
+                "OEM Bosch quality"
+            ],
+            "relatedSlugs": [
+                "bosch-common-rail-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "Bosch Urea Diesel Filter 1 457 436 033",
+            "metaDescription": "Bosch urea diesel filter part 1 457 436 033. Covers 69% of Class 4\u20138 trucks. NW Fuel Injection Services Surrey BC.",
+            "code": "AB0136"
+        },
+        {
+            "slug": "lb7-injector-set",
+            "name": "LB7 Duramax Injector Set",
+            "partNumber": "0 986 435 502 (x8)",
+            "brand": "Bosch",
+            "category": "Injectors",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "Common Rail"
+            ],
+            "shortDescription": "Complete set of 8 Bosch LB7 Duramax injectors with installation support.",
+            "description": "Full set of 8 Bosch common rail injectors for the original LB7 Duramax platform, with NW Fuel's expert installation guidance and technical support.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/0986437468.jpeg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0137"
+                },
+                {
+                    "label": "Quantity",
+                    "value": "8 injectors"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.6L Duramax LB7"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "0 986 435 502"
+                }
+            ],
+            "compatibleVehicles": [
+                "2001\u20132004 Chevrolet/GMC 2500HD/3500HD 6.6L Duramax LB7"
+            ],
+            "features": [
+                "Complete 8-injector set",
+                "Installation guide available",
+                "Balance tested"
+            ],
+            "relatedSlugs": [
+                "bosch-duramax-lb7-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "LB7 Duramax Injector Set (8)",
+            "metaDescription": "Complete LB7 Duramax injector set \u2014 8 Bosch common rail injectors. Installation support from NW Fuel Injection Services.",
+            "code": "AB0137"
+        },
+        {
+            "slug": "hpop-60-powerstroke",
+            "name": "6.0L HPOP (High Pressure Oil Pump)",
+            "partNumber": "3C3Z-9A543-AD",
+            "brand": "Alliant Power",
+            "category": "Component Parts",
+            "vehicleType": [
+                "Light Duty Truck"
+            ],
+            "engineType": [
+                "HEUI"
+            ],
+            "shortDescription": "High-pressure oil pump for Ford 6.0L Powerstroke HEUI systems.",
+            "description": "Replacement high-pressure oil pump (HPOP) for Ford 6.0L Powerstroke engines. Critical component for HEUI injector operation.",
+            "image": "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg",
+            "gallery": [
+                "https://nwfuel.ca/wp-content/uploads/2025/11/4076442.jpg"
+            ],
+            "specifications": [
+                {
+                    "label": "Product Code",
+                    "value": "AB0138"
+                },
+                {
+                    "label": "Part Number",
+                    "value": "3C3Z-9A543-AD"
+                },
+                {
+                    "label": "Engine",
+                    "value": "6.0L Powerstroke"
+                },
+                {
+                    "label": "System",
+                    "value": "HEUI"
+                }
+            ],
+            "compatibleVehicles": [
+                "2003\u20132007 Ford F-250/F-350 6.0L Powerstroke"
+            ],
+            "features": [
+                "HEUI system critical component",
+                "OEM-spec replacement"
+            ],
+            "relatedSlugs": [
+                "alliant-60-powerstroke-injector"
+            ],
+            "faqs": [],
+            "metaTitle": "6.0L Powerstroke HPOP High Pressure Oil Pump",
+            "metaDescription": "6.0L Powerstroke HPOP high-pressure oil pump. HEUI system component. Available from NW Fuel Injection Services BC.",
+            "code": "AB0138"
+        }
+    ],
+    "productCategories": [
+        "Injectors",
+        "Pumps & Injectors",
+        "Engine Parts",
+        "Turbos",
+        "Component Parts",
+        "Fuel Additives",
+        "Filters"
+    ],
+    "brands": [
+        "Bosch",
+        "Denso",
+        "Delphi",
+        "Stanadyne",
+        "Alliant Power",
+        "Pure Power",
+        "Yanmar",
+        "Cummins",
+        "Garrett",
+        "Holset",
+        "Borg Warner"
+    ],
+    "vehicleTypes": [
+        "Light Duty Truck",
+        "Medium/Heavy Duty",
+        "Industrial/Off-Road",
+        "Marine",
+        "Agricultural",
+        "Commercial Vehicle"
+    ],
+    "engineTypes": [
+        "Common Rail",
+        "HEUI",
+        "EUI",
+        "Mechanical",
+        "Gasoline/GDI"
+    ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "why-60l-injectors-fail",
+    "title": "Why Do 6.0L Injectors Fail?",
+    "excerpt": "Understanding the common failure modes of Ford 6.0L Powerstroke HEUI injectors and what you can do about it.",
+    "date": "2019-04-15",
+    "category": "Technical",
+    "readTime": "5 min",
+    "image": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80&auto=format&fit=crop"
+  },
+  {
+    "slug": "duramax-fuel-injector-replacement",
+    "title": "Replacing Duramax Fuel Injectors",
+    "excerpt": "A comprehensive guide to identifying, testing, and replacing fuel injectors on GM Duramax engines.",
+    "date": "2019-02-20",
+    "category": "Technical",
+    "readTime": "7 min",
+    "image": "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=800&q=80&auto=format&fit=crop"
+  },
+  {
+    "slug": "diesel-emissions-control-systems",
+    "title": "Diesel Emissions Control Systems",
+    "excerpt": "How modern diesel emissions systems work and what repair shops need to know about DEF, DPF, and SCR.",
+    "date": "2019-03-10",
+    "category": "Industry",
+    "readTime": "6 min",
+    "image": "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=800&q=80&auto=format&fit=crop"
+  },
+  {
+    "slug": "cutting-edge-diesel-testing",
+    "title": "At the Cutting Edge of Diesel Fuel Injection Testing",
+    "excerpt": "How NW Fuel invests in the latest test equipment to deliver precision diagnostics for the diesel industry.",
+    "date": "2019-02-05",
+    "category": "Company",
+    "readTime": "4 min",
+    "image": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&q=80&auto=format&fit=crop"
+  }
+]

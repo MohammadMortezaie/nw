@@ -1,0 +1,15 @@
+{
+  "productsMenu": [
+    { "label": "All Products", "href": "/products" },
+    { "label": "Search by Part Number", "href": "/products#filter-search" }
+  ],
+  "servicesMenu": [
+    { "label": "Mechanical Injector Testing & Rebuilding", "href": "/services/mechanical-injector-rebuild" },
+    { "label": "HEUI & EUI Injector Testing", "href": "/services/heui-eui-testing" },
+    { "label": "Common Rail Injector Testing", "href": "/services/common-rail-repair" },
+    { "label": "Diesel Injection Pump Testing & Rebuilding", "href": "/services/fuel-pump-rebuild" },
+    { "label": "Gasoline Injector Testing & Cleaning", "href": "/services/gasoline-injector-cleaning" },
+    { "label": "Testing Prices & Scheduling", "href": "/services/injector-testing" },
+    { "label": "See All Services", "href": "/services", "all": true }
+  ]
+}
