@@ -66,10 +66,16 @@ function nw_fuel_admin_field(array $args): void
     $rows        = (int) ($args['rows'] ?? 3);
     $help        = (string) ($args['help'] ?? '');
     $class       = (string) ($args['class'] ?? 'widefat');
+    $api_managed = ! empty($args['api_managed']);
     ?>
     <div class="nw-admin-field">
       <?php if ($label !== '') : ?>
-      <label><?php echo esc_html($label); ?></label>
+      <label>
+        <?php echo esc_html($label); ?>
+        <?php if ($api_managed) : ?>
+          <?php nw_fuel_admin_api_badge(); ?>
+        <?php endif; ?>
+      </label>
       <?php endif; ?>
       <?php if ($type === 'textarea') : ?>
       <textarea class="<?php echo esc_attr($class); ?>" name="<?php echo esc_attr($name); ?>" rows="<?php echo esc_attr((string) $rows); ?>" placeholder="<?php echo esc_attr($placeholder); ?>"><?php echo esc_textarea($value); ?></textarea>
@@ -80,6 +86,16 @@ function nw_fuel_admin_field(array $args): void
       <p class="description"><?php echo esc_html($help); ?></p>
       <?php endif; ?>
     </div>
+    <?php
+}
+
+/**
+ * Mark a product field whose value is replaced by the nightly inventory API.
+ */
+function nw_fuel_admin_api_badge(): void
+{
+    ?>
+    <span class="nw-api-managed-badge"><?php esc_html_e('Updated every day by API', 'nw-fuel'); ?></span>
     <?php
 }
 

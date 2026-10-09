@@ -11,6 +11,43 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
+add_action('wp_ajax_nw_fuel_search_related_products', 'nw_fuel_ajax_search_related_products');
+
+/**
+ * Search a small set of products for the Related Products admin picker.
+ */
+function nw_fuel_ajax_search_related_products(): void
+{
+    check_ajax_referer('nw_fuel_related_products', 'nonce');
+
+    if (! current_user_can('edit_products')) {
+        wp_send_json_error(['message' => __('You are not allowed to edit products.', 'nw-fuel')], 403);
+    }
+
+    $query      = sanitize_text_field(wp_unslash($_GET['q'] ?? ''));
+    $product_id = absint($_GET['product_id'] ?? 0);
+    if (mb_strlen($query) < 2) {
+        wp_send_json_success([]);
+    }
+
+    $products = [];
+    foreach (nw_fuel_product_search_suggestions($query, 20) as $row) {
+        $id = (int) ($row['id'] ?? 0);
+        if ($id < 1 || $id === $product_id) {
+            continue;
+        }
+        $products[] = [
+            'id'    => $id,
+            'title' => (string) ($row['name'] ?? ''),
+            'slug'  => (string) ($row['slug'] ?? ''),
+            'part'  => (string) ($row['part'] ?? ''),
+            'image' => (string) ($row['image'] ?? ''),
+        ];
+    }
+
+    wp_send_json_success($products);
+}
+
 /**
  * Render product details CRUD UI.
  */
@@ -47,29 +84,34 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
     if ($current_brand !== '' && ! in_array($current_brand, $brand_options, true)) {
         array_unshift($brand_options, $current_brand);
     }
+    $api_managed = (string) get_post_meta($post->ID, '_nw_inventory_managed', true) === 'yes'
+        || metadata_exists('post', $post->ID, '_nw_website');
 
-    $other_products = [];
-    if (nw_fuel_is_woocommerce_active()) {
-        $other_products = get_posts([
-            'post_type'      => 'product',
-            'posts_per_page' => -1,
-            'post_status'    => ['publish', 'draft', 'private'],
-            'post__not_in'   => [$post->ID],
-            'orderby'        => 'title',
-            'order'          => 'ASC',
-        ]);
+    $selected_related_products = [];
+    foreach ($related as $slug) {
+        $related_post = get_page_by_path($slug, OBJECT, 'product');
+        if ($related_post instanceof WP_Post && $related_post->ID !== $post->ID) {
+            $selected_related_products[] = $related_post;
+        }
     }
     ?>
-    <div class="nw-admin-wrap">
+    <div class="nw-admin-wrap" data-nw-api-managed="<?php echo $api_managed ? '1' : '0'; ?>">
+      <?php if ($api_managed) : ?>
+      <p class="nw-api-managed-notice">
+        <?php nw_fuel_admin_api_badge(); ?>
+        <?php esc_html_e('Changes to marked fields may be replaced by the nightly inventory sync.', 'nw-fuel'); ?>
+      </p>
+      <?php endif; ?>
       <div class="nw-admin-panel">
         <h3 class="nw-admin-panel__title"><?php esc_html_e('Catalog details', 'nw-fuel'); ?></h3>
         <p class="nw-admin-panel__help"><?php esc_html_e('Use WooCommerce title, description, and categories in the main product fields. Brand is the Attributes → Brand list. These NW Fuel fields power the custom product page.', 'nw-fuel'); ?></p>
         <div class="nw-admin-grid nw-admin-grid--2">
           <?php
           nw_fuel_admin_field([
-              'label' => __('Part Number', 'nw-fuel'),
-              'name'  => '_nw_part_number',
-              'value' => $part,
+              'label'       => __('Part Number', 'nw-fuel'),
+              'name'        => '_nw_part_number',
+              'value'       => $part,
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label' => __('Product Code (admin only)', 'nw-fuel'),
@@ -81,7 +123,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
         </div>
         <div class="nw-admin-grid nw-admin-grid--2" style="margin-top:12px;">
           <div class="nw-admin-field">
-            <label for="nw_product_brand"><?php esc_html_e('Brand', 'nw-fuel'); ?></label>
+            <label for="nw_product_brand"><?php esc_html_e('Brand', 'nw-fuel'); ?> <?php if ($api_managed) { nw_fuel_admin_api_badge(); } ?></label>
             <select class="widefat" id="nw_product_brand" name="nw_product_brand">
               <option value=""><?php esc_html_e('Select a brand', 'nw-fuel'); ?></option>
               <?php foreach ($brand_options as $brand_name) : ?>
@@ -91,7 +133,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
             <p class="description"><?php esc_html_e('From Products → Attributes → Brand. Nightly PriceBook also sets this.', 'nw-fuel'); ?></p>
           </div>
           <div class="nw-admin-field">
-            <label for="nw_product_brand_new"><?php esc_html_e('Add new brand', 'nw-fuel'); ?></label>
+            <label for="nw_product_brand_new"><?php esc_html_e('Add new brand', 'nw-fuel'); ?> <?php if ($api_managed) { nw_fuel_admin_api_badge(); } ?></label>
             <input class="widefat" type="text" id="nw_product_brand_new" name="nw_product_brand_new" value="" placeholder="<?php esc_attr_e('Type a new brand name', 'nw-fuel'); ?>">
             <p class="description"><?php esc_html_e('Saves as a new Attributes → Brand term and assigns it to this product.', 'nw-fuel'); ?></p>
           </div>
@@ -105,36 +147,42 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
               'name'        => '_nw_retail',
               'value'       => $retail,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label'       => __('Level 1 (column I)', 'nw-fuel'),
               'name'        => '_nw_trade_total',
               'value'       => $level1,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label'       => __('Level 2 (column J)', 'nw-fuel'),
               'name'        => '_nw_special1_total',
               'value'       => $level2,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label'       => __('Level 3 (column K)', 'nw-fuel'),
               'name'        => '_nw_special2_total',
               'value'       => $level3,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label'       => __('Level 4 (column L)', 'nw-fuel'),
               'name'        => '_nw_special3_total',
               'value'       => $level4,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
               'label'       => __('Core (column N)', 'nw-fuel'),
               'name'        => '_nw_cost_p_core',
               'value'       => $core,
               'placeholder' => '0.00',
+              'api_managed' => $api_managed,
           ]);
           ?>
         </div>
@@ -145,6 +193,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
             'name'  => '_nw_short_description',
             'value' => $short,
             'rows'  => 2,
+            'api_managed' => $api_managed,
         ]);
         ?>
       </div>
@@ -220,7 +269,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
       </div>
 
       <div class="nw-admin-panel">
-        <h3 class="nw-admin-panel__title"><?php esc_html_e('Alternates', 'nw-fuel'); ?></h3>
+        <h3 class="nw-admin-panel__title"><?php esc_html_e('Alternates', 'nw-fuel'); ?> <?php if ($api_managed) { nw_fuel_admin_api_badge(); } ?></h3>
         <p class="nw-admin-panel__help"><?php esc_html_e('Alternate part numbers used for search (from the Excel “Alternates for search” column).', 'nw-fuel'); ?></p>
         <div class="nw-repeater" data-nw-repeater="product_alts" data-name="nw_product_alts">
           <p class="nw-admin-empty"<?php echo $alts ? ' style="display:none"' : ''; ?>><?php esc_html_e('No alternates yet.', 'nw-fuel'); ?></p>
@@ -313,21 +362,37 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
 
       <div class="nw-admin-panel">
         <h3 class="nw-admin-panel__title"><?php esc_html_e('Related Products', 'nw-fuel'); ?></h3>
-        <?php if (! $other_products) : ?>
-        <p class="nw-admin-empty"><?php esc_html_e('No other products available yet.', 'nw-fuel'); ?></p>
-        <?php else : ?>
-        <div class="nw-related-list">
-          <?php foreach ($other_products as $product_post) :
-              $slug = (string) $product_post->post_name;
-              ?>
-          <label>
-            <input type="checkbox" name="nw_related_product_slugs[]" value="<?php echo esc_attr($slug); ?>" <?php checked(in_array($slug, $related, true)); ?>>
-            <?php echo esc_html(get_the_title($product_post)); ?>
-            <code><?php echo esc_html($slug); ?></code>
-          </label>
-          <?php endforeach; ?>
+        <p class="nw-admin-panel__help"><?php esc_html_e('Search by product name, part number, or alternate, then add the products you want to show as related.', 'nw-fuel'); ?></p>
+        <div class="nw-related-picker" data-nw-related-picker data-product-id="<?php echo esc_attr((string) $post->ID); ?>" data-nonce="<?php echo esc_attr(wp_create_nonce('nw_fuel_related_products')); ?>">
+          <input type="hidden" name="nw_related_product_slugs_json" value="<?php echo esc_attr((string) wp_json_encode(array_values($related))); ?>" data-nw-related-value>
+          <label class="screen-reader-text" for="nw-related-product-search"><?php esc_html_e('Search related products', 'nw-fuel'); ?></label>
+          <div class="nw-related-picker__search">
+            <input class="widefat" type="search" id="nw-related-product-search" placeholder="<?php esc_attr_e('Search name, part number, or alternate…', 'nw-fuel'); ?>" autocomplete="off" data-nw-related-search>
+            <span class="spinner" data-nw-related-spinner></span>
+          </div>
+          <div class="nw-related-picker__results" data-nw-related-results hidden></div>
+          <p class="nw-related-picker__status" data-nw-related-status aria-live="polite"></p>
+
+          <h4 class="nw-related-picker__selected-title"><?php esc_html_e('Selected related products', 'nw-fuel'); ?></h4>
+          <p class="nw-admin-empty" data-nw-related-empty<?php echo $selected_related_products ? ' style="display:none"' : ''; ?>><?php esc_html_e('No related products selected.', 'nw-fuel'); ?></p>
+          <div class="nw-related-picker__selected" data-nw-related-selected>
+            <?php foreach ($selected_related_products as $product_post) :
+                $slug          = (string) $product_post->post_name;
+                $related_row   = nw_fuel_product_search_suggestion((int) $product_post->ID);
+                $related_part  = (string) ($related_row['part'] ?? nw_fuel_get_part_number((int) $product_post->ID));
+                $related_image = (string) ($related_row['image'] ?? '');
+                ?>
+            <div class="nw-related-picker__item" data-related-slug="<?php echo esc_attr($slug); ?>">
+              <?php if ($related_image !== '') : ?><img class="nw-related-picker__thumb" src="<?php echo esc_url($related_image); ?>" alt="" loading="lazy"><?php endif; ?>
+              <span class="nw-related-picker__item-copy">
+                <strong><?php echo esc_html(get_the_title($product_post)); ?></strong>
+                <?php if ($related_part !== '') : ?><code><?php echo esc_html($related_part); ?></code><?php endif; ?>
+              </span>
+              <button type="button" class="button-link-delete" data-nw-related-remove><?php esc_html_e('Remove', 'nw-fuel'); ?></button>
+            </div>
+            <?php endforeach; ?>
+          </div>
         </div>
-        <?php endif; ?>
       </div>
     </div>
     <?php
@@ -500,8 +565,14 @@ function nw_fuel_save_product_admin_fields(int $post_id): void
     );
     update_post_meta($post_id, '_nw_product_faqs', nw_fuel_json_encode_meta($faqs));
 
+    $related_json = (string) wp_unslash($_POST['nw_related_product_slugs_json'] ?? '');
+    $related_input = json_decode($related_json, true);
+    if (! is_array($related_input)) {
+        $related_input = (array) wp_unslash($_POST['nw_related_product_slugs'] ?? []);
+    }
+
     $related = [];
-    foreach ((array) wp_unslash($_POST['nw_related_product_slugs'] ?? []) as $slug) {
+    foreach ($related_input as $slug) {
         $slug = sanitize_title((string) $slug);
         if ($slug !== '') {
             $related[] = $slug;

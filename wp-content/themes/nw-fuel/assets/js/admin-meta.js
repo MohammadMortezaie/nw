@@ -113,8 +113,212 @@
     });
   }
 
+  function apiManagedBadge() {
+    return '<span class="nw-api-managed-badge">Updated every day by API</span>';
+  }
+
+  function markProductApiFields() {
+    if (!$('body').hasClass('post-type-product')) return;
+    if (!$('[data-nw-api-managed="1"]').length) return;
+
+    var $titleWrap = $('#titlewrap');
+    if ($titleWrap.length && !$titleWrap.children('.nw-api-managed-title').length) {
+      $titleWrap.prepend('<div class="nw-api-managed-title">' + apiManagedBadge() + '</div>');
+    }
+
+    var selectors = [
+      '#product_catdiv .postbox-header h2',
+      '#product_catdiv > h2.hndle',
+      'label[for="_regular_price"]',
+      'label[for="_manage_stock"]',
+      'label[for="_stock"]',
+      'label[for="_stock_status"]',
+      'fieldset._stock_status_field > legend',
+      '#catalog-visibility'
+    ];
+
+    $(selectors.join(',')).each(function () {
+      var $target = $(this);
+      if (!$target.children('.nw-api-managed-badge').length) {
+        $target.append(apiManagedBadge());
+      }
+    });
+  }
+
+  function bindRelatedProductPicker($scope) {
+    $scope.find('[data-nw-related-picker]').each(function () {
+      var $picker = $(this);
+      var $search = $picker.find('[data-nw-related-search]');
+      var $results = $picker.find('[data-nw-related-results]');
+      var $selected = $picker.find('[data-nw-related-selected]');
+      var $value = $picker.find('[data-nw-related-value]');
+      var $empty = $picker.find('[data-nw-related-empty]');
+      var $status = $picker.find('[data-nw-related-status]');
+      var $spinner = $picker.find('[data-nw-related-spinner]');
+      var timer = null;
+      var request = null;
+      var searchSequence = 0;
+
+      function selectedHas(slug) {
+        return $selected.find('[data-related-slug]').filter(function () {
+          return $(this).attr('data-related-slug') === slug;
+        }).length > 0;
+      }
+
+      function closeResults() {
+        $results.empty().prop('hidden', true);
+      }
+
+      function syncSelectedValue() {
+        var slugs = $selected.children('[data-related-slug]').map(function () {
+          return $(this).attr('data-related-slug') || '';
+        }).get().filter(Boolean);
+        $value.val(JSON.stringify(slugs));
+      }
+
+      function addSelectedProduct(product) {
+        if (!product.slug || selectedHas(product.slug)) return;
+
+        var $item = $('<div>', {
+          class: 'nw-related-picker__item',
+          'data-related-slug': product.slug
+        });
+
+        if (product.image) {
+          $('<img>', {
+            class: 'nw-related-picker__thumb',
+            src: product.image,
+            alt: '',
+            loading: 'lazy'
+          }).appendTo($item);
+        }
+
+        var $copy = $('<span>', { class: 'nw-related-picker__item-copy' }).appendTo($item);
+        $('<strong>').text(product.title || product.slug).appendTo($copy);
+        if (product.part) {
+          $('<code>').text(product.part).appendTo($copy);
+        }
+        $('<button>', {
+          type: 'button',
+          class: 'button-link-delete',
+          'data-nw-related-remove': '',
+          text: 'Remove'
+        }).appendTo($item);
+
+        $selected.append($item);
+        syncSelectedValue();
+        $empty.hide();
+        $search.val('').trigger('focus');
+        $status.text('Product added.');
+        closeResults();
+      }
+
+      function renderResults(products) {
+        closeResults();
+        products = products.filter(function (product) {
+          return product.slug && !selectedHas(product.slug);
+        });
+
+        if (!products.length) {
+          $status.text('No matching products found.');
+          return;
+        }
+
+        products.forEach(function (product) {
+          var $button = $('<button>', {
+            type: 'button',
+            class: 'nw-related-picker__result',
+            'data-related-result': '',
+            'data-related-slug': product.slug,
+            'data-related-title': product.title || product.slug,
+            'data-related-part': product.part || '',
+            'data-related-image': product.image || ''
+          });
+          if (product.image) {
+            $('<img>', {
+              class: 'nw-related-picker__thumb',
+              src: product.image,
+              alt: '',
+              loading: 'lazy'
+            }).appendTo($button);
+          }
+          var $resultCopy = $('<span>', { class: 'nw-related-picker__result-copy' }).appendTo($button);
+          $('<strong>').text(product.title || product.slug).appendTo($resultCopy);
+          $('<span>').text(product.part ? 'Part # ' + product.part : product.slug).appendTo($resultCopy);
+          $results.append($button);
+        });
+        $results.prop('hidden', false);
+        $status.text(products.length + ' product' + (products.length === 1 ? '' : 's') + ' found.');
+      }
+
+      $search.on('input', function () {
+        var query = $.trim($search.val());
+        var sequence = ++searchSequence;
+        window.clearTimeout(timer);
+        if (request) {
+          request.abort();
+          request = null;
+        }
+        $spinner.removeClass('is-active');
+
+        if (query.length < 2) {
+          closeResults();
+          $status.text(query.length ? 'Type at least 2 characters.' : '');
+          return;
+        }
+
+        timer = window.setTimeout(function () {
+          $spinner.addClass('is-active');
+          $status.text('Searching…');
+          var activeRequest = $.get(window.ajaxurl, {
+            action: 'nw_fuel_search_related_products',
+            nonce: $picker.data('nonce'),
+            product_id: $picker.data('product-id'),
+            q: query
+          });
+          request = activeRequest;
+          activeRequest.done(function (response) {
+            if (sequence !== searchSequence) return;
+            renderResults(response && response.success && Array.isArray(response.data) ? response.data : []);
+          }).fail(function (_xhr, status) {
+            if (status !== 'abort' && sequence === searchSequence) {
+              closeResults();
+              $status.text('Search failed. Please try again.');
+            }
+          }).always(function () {
+            if (request === activeRequest) {
+              request = null;
+            }
+            if (sequence === searchSequence) {
+              $spinner.removeClass('is-active');
+            }
+          });
+        }, 250);
+      });
+
+      $results.on('click', '[data-related-result]', function () {
+        var $result = $(this);
+        addSelectedProduct({
+          slug: $result.attr('data-related-slug') || '',
+          title: $result.attr('data-related-title') || '',
+          part: $result.attr('data-related-part') || '',
+          image: $result.attr('data-related-image') || ''
+        });
+      });
+
+      $selected.on('click', '[data-nw-related-remove]', function () {
+        $(this).closest('[data-related-slug]').remove();
+        syncSelectedValue();
+        $empty.toggle($selected.children('[data-related-slug]').length === 0);
+        $status.text('Product removed. Save or update the product to keep this change.');
+      });
+    });
+  }
+
   $(function () {
+    markProductApiFields();
     bindMedia($(document));
+    bindRelatedProductPicker($(document));
 
     function syncGalleryType() {
       var type = $('input[name="nw_gallery_type"]:checked').val() || 'image';

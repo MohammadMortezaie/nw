@@ -716,7 +716,7 @@ function nw_fuel_product_search_suggestions(string $query, int $limit = 6): arra
     }
 
     $query = sanitize_text_field($query);
-    $limit = max(1, min(12, $limit));
+    $limit = max(1, min(20, $limit));
     $ids   = nw_fuel_product_search_match_ids($query, max(24, $limit * 4));
 
     $rows = [];
@@ -803,7 +803,175 @@ function nw_fuel_product_search_match_ids(string $term, int $limit): array
         }
     }
 
-    return array_values($ids);
+    if (count($ids) < $limit && strlen(nw_fuel_product_search_alnum($term)) >= 4) {
+        $candidate_limit = max(120, min(300, $limit * 10));
+        $fuzzy_matches   = [];
+        foreach (nw_fuel_product_search_fuzzy_candidate_ids($term, $candidate_limit) as $id) {
+            if (isset($ids[$id])) {
+                continue;
+            }
+
+            $row = nw_fuel_product_search_suggestion($id);
+            if ($row === []) {
+                continue;
+            }
+
+            $score = nw_fuel_product_search_score($row, $term);
+            if ($score < 99) {
+                $fuzzy_matches[$id] = $score;
+            }
+        }
+
+        asort($fuzzy_matches, SORT_NUMERIC);
+        foreach (array_keys($fuzzy_matches) as $id) {
+            $ids[$id] = $id;
+            if (count($ids) >= $limit) {
+                break;
+            }
+        }
+    }
+
+    return array_slice(array_values($ids), 0, $limit);
+}
+
+/**
+ * Normalize a search value for forgiving part-number comparisons.
+ */
+function nw_fuel_product_search_alnum(string $value): string
+{
+    return preg_replace('/[^a-z0-9]/', '', strtolower(remove_accents($value))) ?? '';
+}
+
+/**
+ * Candidate products for typo-tolerant matching without loading the full catalog.
+ *
+ * @return list<int>
+ */
+function nw_fuel_product_search_fuzzy_candidate_ids(string $term, int $limit): array
+{
+    global $wpdb;
+
+    $compact = nw_fuel_product_search_alnum($term);
+    $length  = strlen($compact);
+    if ($length < 4) {
+        return [];
+    }
+
+    $fragment_length = $length >= 8 ? 4 : ($length >= 5 ? 3 : 2);
+    $prefix_like     = '%' . $wpdb->esc_like(substr($compact, 0, $fragment_length)) . '%';
+    $suffix_like     = '%' . $wpdb->esc_like(substr($compact, -$fragment_length)) . '%';
+    $limit           = max(1, min(300, $limit));
+    $normalize_title = "LOWER(REPLACE(REPLACE(REPLACE(REPLACE(p.post_title, ' ', ''), '-', ''), '/', ''), '.', ''))";
+    $normalize_meta  = "LOWER(REPLACE(REPLACE(REPLACE(REPLACE(pm.meta_value, ' ', ''), '-', ''), '/', ''), '.', ''))";
+
+    $ids = $wpdb->get_col($wpdb->prepare(
+        "SELECT DISTINCT p.ID
+         FROM {$wpdb->posts} p
+         LEFT JOIN {$wpdb->postmeta} pm
+           ON pm.post_id = p.ID
+          AND pm.meta_key IN ('_nw_part_number', '_sku', '_nw_search_alts', '_nw_secondary_ids')
+         WHERE p.post_type = 'product'
+           AND p.post_status = 'publish'
+           AND (
+             {$normalize_title} LIKE %s
+             OR {$normalize_title} LIKE %s
+             OR {$normalize_meta} LIKE %s
+             OR {$normalize_meta} LIKE %s
+           )
+         LIMIT %d",
+        $prefix_like,
+        $suffix_like,
+        $prefix_like,
+        $suffix_like,
+        $limit
+    ));
+
+    return array_values(array_filter(array_map('intval', is_array($ids) ? $ids : [])));
+}
+
+/**
+ * Lower is better for one part number or alternate.
+ */
+function nw_fuel_product_search_part_token_score(string $query, string $token): int
+{
+    $q = nw_fuel_product_search_alnum($query);
+    $t = nw_fuel_product_search_alnum($token);
+    if ($q === '' || $t === '') {
+        return 99;
+    }
+    if ($t === $q) {
+        return 0;
+    }
+
+    $query_digits = preg_replace('/\D/', '', $query) ?? '';
+    $token_digits = preg_replace('/\D/', '', $token) ?? '';
+    if ($query_digits !== '' && $token_digits === $query_digits) {
+        return 1;
+    }
+    if (min(strlen($q), strlen($t)) >= 4 && (str_starts_with($t, $q) || str_starts_with($q, $t))) {
+        return 2 + min(4, abs(strlen($t) - strlen($q)));
+    }
+    if (strlen($query_digits) >= 4 && strlen($token_digits) >= 4
+        && (str_starts_with($token_digits, $query_digits) || str_starts_with($query_digits, $token_digits))) {
+        return 3 + min(4, abs(strlen($token_digits) - strlen($query_digits)));
+    }
+    if (strlen($query_digits) >= 4 && str_contains($token_digits, $query_digits)) {
+        return 8;
+    }
+    if (str_contains($t, $q) || (strlen($q) >= 4 && strlen($t) >= 4 && str_contains($q, $t))) {
+        return 9;
+    }
+    if (strlen($query_digits) >= 4 && strlen($token_digits) >= 4) {
+        $distance = levenshtein($query_digits, $token_digits);
+        if ($distance <= 2) {
+            return 10 + $distance;
+        }
+    }
+    if (strlen($q) >= 4 && strlen($t) >= 4) {
+        $distance = levenshtein($q, $t);
+        if ($distance <= 3 && $distance / max(strlen($q), strlen($t)) <= 0.5) {
+            return 13 + $distance;
+        }
+    }
+
+    return 99;
+}
+
+/**
+ * Match misspelled words in product names and brands.
+ */
+function nw_fuel_product_search_text_score(string $query, string $text): int
+{
+    $query_words = preg_split('/[^a-z0-9]+/', strtolower(remove_accents($query)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $text_words  = preg_split('/[^a-z0-9]+/', strtolower(remove_accents($text)), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    if ($query_words === [] || $text_words === []) {
+        return 99;
+    }
+
+    $total = 0;
+    foreach ($query_words as $query_word) {
+        $best = 99;
+        foreach ($text_words as $text_word) {
+            if ($query_word === $text_word || str_contains($text_word, $query_word) || str_contains($query_word, $text_word)) {
+                $best = 0;
+                break;
+            }
+            if (strlen($query_word) < 3 || strlen($text_word) < 3) {
+                continue;
+            }
+            $distance     = levenshtein($query_word, $text_word);
+            $max_distance = strlen($query_word) <= 5 ? 1 : 2;
+            if ($distance <= $max_distance) {
+                $best = min($best, $distance);
+            }
+        }
+        if ($best === 99) {
+            return 99;
+        }
+        $total += $best;
+    }
+
+    return 30 + $total;
 }
 
 /**
@@ -813,28 +981,15 @@ function nw_fuel_product_search_match_ids(string $term, int $limit): array
  */
 function nw_fuel_product_search_score(array $row, string $query): int
 {
-    $q      = strtolower(trim($query));
-    $qClean = preg_replace('/[^a-z0-9]/', '', $q) ?? '';
-    $part   = strtolower((string) ($row['part'] ?? ''));
-    $alts   = strtolower((string) ($row['alts'] ?? ''));
-    $name   = strtolower((string) ($row['name'] ?? ''));
-    $brand  = strtolower((string) ($row['brand'] ?? ''));
+    $q     = strtolower(trim($query));
+    $part  = strtolower((string) ($row['part'] ?? ''));
+    $alts  = strtolower((string) ($row['alts'] ?? ''));
+    $name  = strtolower((string) ($row['name'] ?? ''));
+    $brand = strtolower((string) ($row['brand'] ?? ''));
 
     $best = 99;
     foreach (array_filter(array_merge([$part], preg_split('/[\s,;|\/]+/', $alts) ?: [])) as $token) {
-        $token = strtolower(trim((string) $token));
-        $clean = preg_replace('/[^a-z0-9]/', '', $token) ?? '';
-        if ($token === $q || ($qClean !== '' && $clean === $qClean)) {
-            $best = min($best, 0);
-            continue;
-        }
-        if ($qClean !== '' && $clean !== '' && (str_starts_with($clean, $qClean) || str_starts_with($qClean, $clean))) {
-            $best = min($best, 2);
-            continue;
-        }
-        if ($qClean !== '' && $clean !== '' && str_contains($clean, $qClean)) {
-            $best = min($best, 8);
-        }
+        $best = min($best, nw_fuel_product_search_part_token_score($query, (string) $token));
     }
 
     if ($best < 99) {
@@ -850,7 +1005,12 @@ function nw_fuel_product_search_score(array $row, string $query): int
         return 23;
     }
 
-    return 50;
+    $text_score = nw_fuel_product_search_text_score($query, trim($name . ' ' . $brand));
+    if ($text_score < 99) {
+        return $text_score;
+    }
+
+    return 99;
 }
 
 /**

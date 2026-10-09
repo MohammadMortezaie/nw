@@ -738,7 +738,8 @@ function nw_fuel_register_product_report_page(): void
         'manage_options',
         'nw-fuel-product-report',
         'nw_fuel_render_product_report_page',
-        'dashicons-chart-area'
+        'dashicons-chart-area',
+        4
     );
 
     if (is_string($hook) && $hook !== '') {
@@ -892,6 +893,7 @@ function nw_fuel_render_product_report_page(): void
       <div class="nw-report-chart-panel nw-report-keywords">
         <h2><?php esc_html_e('Search Keywords', 'nw-fuel'); ?></h2>
         <p class="nw-report-chart-panel__help"><?php esc_html_e('Every term typed into a search box or bar, most frequent first. "No results" means the term never matched a product — a signal for demand you may not carry yet.', 'nw-fuel'); ?></p>
+        <div class="nw-report-keywords__table-wrap">
         <table class="widefat striped nw-report-table">
           <thead>
             <tr>
@@ -916,6 +918,7 @@ function nw_fuel_render_product_report_page(): void
             <?php endforeach; ?>
           </tbody>
         </table>
+        </div>
         <form method="get" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="nw-report-export">
           <?php wp_nonce_field('nw_fuel_product_report_keywords_export'); ?>
           <input type="hidden" name="action" value="nw_fuel_product_report_keywords_export">

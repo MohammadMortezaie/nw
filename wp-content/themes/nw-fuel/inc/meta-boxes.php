@@ -55,13 +55,15 @@ function nw_fuel_service_editor_intro(WP_Post $post): void
 }
 
 /**
- * Hide WooCommerce's single featured-image / unlimited gallery boxes.
- * Photos are managed in the NW Fuel 1–5 picker instead.
+ * Hide WooCommerce fields replaced by the NW Fuel product interface.
+ * Photos are managed in the NW Fuel 1–5 picker. The stored product excerpt
+ * remains available to the nightly sync and SEO fallbacks.
  */
 function nw_fuel_remove_product_image_boxes(): void
 {
     remove_meta_box('postimagediv', 'product', 'side');
     remove_meta_box('woocommerce-product-images', 'product', 'side');
+    remove_meta_box('postexcerpt', 'product', 'normal');
 }
 
 /**

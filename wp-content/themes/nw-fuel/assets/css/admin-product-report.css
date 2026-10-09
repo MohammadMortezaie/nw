@@ -342,10 +342,16 @@
   margin-bottom: 20px;
 }
 
-.nw-report-keywords .nw-report-table {
+.nw-report-keywords__table-wrap {
   max-height: 420px;
+  overflow-x: auto;
   overflow-y: auto;
-  display: block;
+}
+
+.nw-report-keywords .nw-report-table {
+  width: 100%;
+  margin-bottom: 0;
+  table-layout: fixed;
 }
 
 .nw-report-keywords .nw-report-export {
