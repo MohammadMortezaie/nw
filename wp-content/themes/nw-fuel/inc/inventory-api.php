@@ -25,6 +25,7 @@ const NW_FUEL_INVENTORY_LATEST_FILE    = 'latest.csv';
 const NW_FUEL_INVENTORY_RATE_PER_MIN   = 10;
 const NW_FUEL_INVENTORY_UPLOADS_PER_NIGHT = 3;
 const NW_FUEL_INVENTORY_QUOTA_OPTION   = 'nw_fuel_inventory_nightly_upload_quota';
+const NW_FUEL_INVENTORY_LOG_RETENTION_DAYS = 7;
 
 add_action('rest_api_init', 'nw_fuel_register_inventory_rest_routes');
 add_action('admin_menu', 'nw_fuel_register_inventory_api_page');
@@ -32,6 +33,11 @@ add_action('admin_post_nw_fuel_generate_inventory_api_key', 'nw_fuel_handle_gene
 add_action('admin_post_nw_fuel_revoke_inventory_api_key', 'nw_fuel_handle_revoke_inventory_api_key');
 add_action('admin_post_nw_fuel_save_inventory_mode', 'nw_fuel_handle_save_inventory_mode');
 add_action('admin_post_nw_fuel_upload_inventory_file', 'nw_fuel_handle_upload_inventory_file');
+add_action('admin_post_nw_fuel_view_inventory_api_log', 'nw_fuel_handle_view_inventory_api_log');
+add_action('init', 'nw_fuel_schedule_inventory_api_log_cleanup');
+add_action('nw_fuel_inventory_api_log_cleanup', 'nw_fuel_prune_inventory_api_logs_now');
+add_action('switch_theme', 'nw_fuel_unschedule_inventory_api_log_cleanup');
+add_filter('rest_post_dispatch', 'nw_fuel_log_inventory_api_request', 10, 3);
 
 /**
  * Current product-list update source: nightly API or manual Excel/CSV.
@@ -73,6 +79,251 @@ function nw_fuel_register_inventory_rest_routes(): void
             'permission_callback' => 'nw_fuel_inventory_api_permission',
         ],
     ]);
+}
+
+/**
+ * Timezone used for daily API log files.
+ */
+function nw_fuel_inventory_api_log_timezone(): DateTimeZone
+{
+    $timezone = defined('NW_FUEL_INVENTORY_SYNC_TZ')
+        ? NW_FUEL_INVENTORY_SYNC_TZ
+        : 'America/Los_Angeles';
+
+    return new DateTimeZone($timezone);
+}
+
+/**
+ * Private directory for inventory API logs.
+ *
+ * The randomized dot-directory and deny rules prevent direct web access. Logs
+ * are only exposed through an authenticated manage_options admin action.
+ */
+function nw_fuel_inventory_api_log_dir(): string|WP_Error
+{
+    $inventory_dir = nw_fuel_inventory_upload_dir();
+    if (is_wp_error($inventory_dir)) {
+        return $inventory_dir;
+    }
+
+    $secret = substr(hash_hmac('sha256', 'inventory-api-logs', wp_salt('auth')), 0, 24);
+    $dir    = trailingslashit($inventory_dir) . '.api-logs-' . $secret;
+    if (! wp_mkdir_p($dir)) {
+        return new WP_Error('nw_fuel_log_mkdir', __('Could not create inventory API log directory.', 'nw-fuel'));
+    }
+
+    $protection_files = [
+        '.htaccess' => "Require all denied\nDeny from all\n",
+        'web.config' => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<configuration><system.webServer><authorization><deny users=\"*\" /></authorization></system.webServer></configuration>\n",
+        'index.php' => "<?php\n// Silence is golden.\n",
+    ];
+    foreach ($protection_files as $name => $contents) {
+        $path = trailingslashit($dir) . $name;
+        if (! file_exists($path)) {
+            @file_put_contents($path, $contents, LOCK_EX);
+        }
+    }
+
+    return $dir;
+}
+
+/**
+ * Delete daily API logs older than the seven-day window (today + six days).
+ */
+function nw_fuel_prune_inventory_api_logs(string $dir, DateTimeImmutable $now): void
+{
+    $oldest = $now->setTime(0, 0)->sub(new DateInterval('P' . (NW_FUEL_INVENTORY_LOG_RETENTION_DAYS - 1) . 'D'));
+    $files  = glob(trailingslashit($dir) . '*.log');
+    if (! is_array($files)) {
+        return;
+    }
+
+    foreach ($files as $path) {
+        $filename = basename($path);
+        if (preg_match('/^(\d{2}-\d{2}-\d{4})\.log$/', $filename, $matches) !== 1) {
+            continue;
+        }
+
+        $date   = DateTimeImmutable::createFromFormat('!d-m-Y', $matches[1], $now->getTimezone());
+        $errors = DateTimeImmutable::getLastErrors();
+        if (! $date || (is_array($errors) && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+            continue;
+        }
+
+        if ($date < $oldest) {
+            wp_delete_file($path);
+        }
+    }
+}
+
+/**
+ * Schedule a daily retention cleanup shortly after local midnight.
+ */
+function nw_fuel_schedule_inventory_api_log_cleanup(): void
+{
+    if (wp_next_scheduled('nw_fuel_inventory_api_log_cleanup')) {
+        return;
+    }
+
+    $next_run = new DateTimeImmutable('tomorrow 00:10', nw_fuel_inventory_api_log_timezone());
+    wp_schedule_event($next_run->getTimestamp(), 'daily', 'nw_fuel_inventory_api_log_cleanup');
+}
+
+/**
+ * Run the daily log retention cleanup.
+ */
+function nw_fuel_prune_inventory_api_logs_now(): void
+{
+    $dir = nw_fuel_inventory_api_log_dir();
+    if (is_wp_error($dir)) {
+        return;
+    }
+
+    nw_fuel_prune_inventory_api_logs(
+        $dir,
+        new DateTimeImmutable('now', nw_fuel_inventory_api_log_timezone())
+    );
+}
+
+/**
+ * Remove the theme's scheduled cleanup event when switching themes.
+ */
+function nw_fuel_unschedule_inventory_api_log_cleanup(): void
+{
+    wp_clear_scheduled_hook('nw_fuel_inventory_api_log_cleanup');
+}
+
+/**
+ * Record every matched inventory CSV REST request without logging its API key
+ * or CSV contents.
+ *
+ * @param mixed           $response Final REST response.
+ * @param WP_REST_Server  $server   REST server instance.
+ * @param WP_REST_Request $request  REST request.
+ * @return mixed Unchanged response.
+ */
+function nw_fuel_log_inventory_api_request($response, WP_REST_Server $server, WP_REST_Request $request)
+{
+    unset($server);
+
+    if ($request->get_route() !== '/nw-fuel/v1/inventory/csv') {
+        return $response;
+    }
+
+    $now = new DateTimeImmutable('now', nw_fuel_inventory_api_log_timezone());
+    $dir = nw_fuel_inventory_api_log_dir();
+    if (is_wp_error($dir)) {
+        return $response;
+    }
+
+    $status  = 500;
+    $code    = '';
+    $message = '';
+    $details = [];
+
+    if (is_wp_error($response)) {
+        $code    = (string) $response->get_error_code();
+        $message = $response->get_error_message($code);
+        $data    = $response->get_error_data($code);
+        if (is_array($data) && isset($data['status'])) {
+            $status = (int) $data['status'];
+        }
+    } else {
+        $rest_response = rest_ensure_response($response);
+        $status        = $rest_response->get_status();
+        $data          = $rest_response->get_data();
+        if (is_array($data)) {
+            $code    = isset($data['code']) ? (string) $data['code'] : '';
+            $message = isset($data['message']) ? (string) $data['message'] : '';
+            foreach (['rows', 'bytes', 'source_name'] as $key) {
+                if (isset($data[$key]) && is_scalar($data[$key])) {
+                    $details[$key] = $data[$key];
+                }
+            }
+        }
+    }
+
+    $files        = $request->get_file_params();
+    $source_name  = '';
+    $request_size = 0;
+    if (isset($files['file']) && is_array($files['file'])) {
+        $file_name = $files['file']['name'] ?? '';
+        $file_size = $files['file']['size'] ?? 0;
+        if (is_scalar($file_name)) {
+            $source_name = sanitize_file_name((string) $file_name);
+        }
+        if (is_numeric($file_size)) {
+            $request_size = max(0, (int) $file_size);
+        }
+    } else {
+        $body = $request->get_body();
+        if (is_string($body)) {
+            $request_size = strlen($body);
+        }
+    }
+
+    $entry = [
+        'time'          => $now->format(DateTimeInterface::ATOM),
+        'outcome'       => $status >= 200 && $status < 300 ? 'success' : 'error',
+        'status'        => $status,
+        'method'        => $request->get_method(),
+        'route'         => $request->get_route(),
+        'ip'            => nw_fuel_inventory_api_client_ip(),
+        'code'          => $code,
+        'message'       => $message,
+        'source_name'   => $source_name,
+        'request_bytes' => $request_size,
+        'details'       => $details,
+    ];
+    $line = wp_json_encode($entry, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (is_string($line)) {
+        $path = trailingslashit($dir) . $now->format('d-m-Y') . '.log';
+        $new  = ! file_exists($path);
+        if (@file_put_contents($path, $line . PHP_EOL, FILE_APPEND | LOCK_EX) !== false && $new) {
+            @chmod($path, 0600);
+        }
+    }
+
+    nw_fuel_prune_inventory_api_logs($dir, $now);
+
+    return $response;
+}
+
+/**
+ * Daily inventory API logs currently inside the retention window.
+ *
+ * @return array<int, array{date: string, filename: string, path: string, bytes: int}>
+ */
+function nw_fuel_inventory_api_log_files(): array
+{
+    $dir = nw_fuel_inventory_api_log_dir();
+    if (is_wp_error($dir)) {
+        return [];
+    }
+
+    $files = glob(trailingslashit($dir) . '*.log');
+    if (! is_array($files)) {
+        return [];
+    }
+
+    $logs = [];
+    foreach ($files as $path) {
+        $filename = basename($path);
+        if (preg_match('/^(\d{2})-(\d{2})-(\d{4})\.log$/', $filename, $matches) !== 1) {
+            continue;
+        }
+
+        $logs[] = [
+            'date'     => $matches[3] . '-' . $matches[2] . '-' . $matches[1],
+            'filename' => $filename,
+            'path'     => $path,
+            'bytes'    => (int) filesize($path),
+        ];
+    }
+
+    usort($logs, static fn (array $a, array $b): int => strcmp($b['date'], $a['date']));
+
+    return array_slice($logs, 0, NW_FUEL_INVENTORY_LOG_RETENTION_DAYS);
 }
 
 /**
@@ -649,6 +900,8 @@ function nw_fuel_render_inventory_api_page(): void
 
     $endpoint = rest_url('nw-fuel/v1/inventory/csv');
     $meta     = nw_fuel_get_inventory_csv_meta();
+    nw_fuel_prune_inventory_api_logs_now();
+    $api_logs = nw_fuel_inventory_api_log_files();
     $mode     = nw_fuel_inventory_update_mode();
     $flash    = get_transient('nw_fuel_inventory_admin_flash');
     if (is_array($flash)) {
@@ -805,6 +1058,44 @@ function nw_fuel_render_inventory_api_page(): void
             <p><?php esc_html_e('No CSV uploaded yet.', 'nw-fuel'); ?></p>
         <?php endif; ?>
 
+        <h2><?php esc_html_e('Private API logs', 'nw-fuel'); ?></h2>
+        <p class="description">
+            <?php esc_html_e('Every successful or failed CSV API request is recorded. Logs are private, do not contain the API key or CSV content, and are automatically deleted after seven calendar days.', 'nw-fuel'); ?>
+        </p>
+        <?php if ($api_logs !== []) : ?>
+            <table class="widefat striped" style="max-width:720px;margin-top:12px;">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e('Log file', 'nw-fuel'); ?></th>
+                        <th><?php esc_html_e('Size', 'nw-fuel'); ?></th>
+                        <th><?php esc_html_e('Action', 'nw-fuel'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($api_logs as $log) :
+                        $view_url = wp_nonce_url(
+                            add_query_arg(
+                                [
+                                    'action' => 'nw_fuel_view_inventory_api_log',
+                                    'date'   => $log['date'],
+                                ],
+                                admin_url('admin-post.php')
+                            ),
+                            'nw_fuel_view_inventory_api_log_' . $log['date']
+                        );
+                        ?>
+                        <tr>
+                            <td><code><?php echo esc_html($log['filename']); ?></code></td>
+                            <td><?php echo esc_html(size_format($log['bytes'])); ?></td>
+                            <td><a class="button button-small" href="<?php echo esc_url($view_url); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('View log', 'nw-fuel'); ?></a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else : ?>
+            <p><?php esc_html_e('No API requests have been logged yet.', 'nw-fuel'); ?></p>
+        <?php endif; ?>
+
         <?php
         if (function_exists('nw_fuel_render_inventory_sync_section')) {
             nw_fuel_render_inventory_sync_section();
@@ -812,6 +1103,42 @@ function nw_fuel_render_inventory_api_page(): void
         ?>
     </div>
     <?php
+}
+
+/**
+ * Securely display one daily inventory API log to administrators.
+ */
+function nw_fuel_handle_view_inventory_api_log(): void
+{
+    if (! current_user_can('manage_options')) {
+        wp_die(esc_html__('Unauthorized', 'nw-fuel'), '', ['response' => 403]);
+    }
+
+    $date = isset($_GET['date']) ? sanitize_text_field(wp_unslash($_GET['date'])) : '';
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $matches) !== 1
+        || ! checkdate((int) $matches[2], (int) $matches[3], (int) $matches[1])) {
+        wp_die(esc_html__('Invalid log date.', 'nw-fuel'), '', ['response' => 400]);
+    }
+
+    check_admin_referer('nw_fuel_view_inventory_api_log_' . $date);
+
+    $dir = nw_fuel_inventory_api_log_dir();
+    if (is_wp_error($dir)) {
+        wp_die(esc_html($dir->get_error_message()), '', ['response' => 500]);
+    }
+
+    $filename = $matches[3] . '-' . $matches[2] . '-' . $matches[1] . '.log';
+    $path     = trailingslashit($dir) . $filename;
+    if (! is_file($path) || ! is_readable($path)) {
+        wp_die(esc_html__('Log file not found.', 'nw-fuel'), '', ['response' => 404]);
+    }
+
+    nocache_headers();
+    header('Content-Type: text/plain; charset=utf-8');
+    header('Content-Disposition: inline; filename="' . $filename . '"');
+    header('X-Content-Type-Options: nosniff');
+    readfile($path);
+    exit;
 }
 
 /**
