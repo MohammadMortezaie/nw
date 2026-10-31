@@ -23,14 +23,45 @@ while (have_posts()) :
     $gallery    = nw_fuel_product_gallery_urls($product_id);
     $inventory  = nw_fuel_product_inventory($product_id);
     $features   = nw_fuel_json_meta($product_id, '_nw_features');
-    $specs      = nw_fuel_json_meta($product_id, '_nw_specifications');
-    $vehicles   = nw_fuel_json_meta($product_id, '_nw_compatible_vehicles');
+    $specs      = array_values(array_filter(
+        nw_fuel_json_meta($product_id, '_nw_specifications'),
+        static function (mixed $spec): bool {
+            if (! is_array($spec)) {
+                return false;
+            }
+
+            $label = trim((string) ($spec['label'] ?? ''));
+            $value = trim((string) ($spec['value'] ?? ''));
+
+            return $label !== 'Product Code' && ($label !== '' || $value !== '');
+        }
+    ));
+    $vehicles   = array_values(array_filter(
+        nw_fuel_json_meta($product_id, '_nw_compatible_vehicles'),
+        static fn (mixed $vehicle): bool => is_scalar($vehicle) && trim((string) $vehicle) !== ''
+    ));
     $alts       = nw_fuel_get_search_alts($product_id);
-    $faqs       = nw_fuel_json_meta($product_id, '_nw_product_faqs');
+    $faqs       = array_values(array_filter(
+        nw_fuel_json_meta($product_id, '_nw_product_faqs'),
+        static function (mixed $faq): bool {
+            if (! is_array($faq)) {
+                return false;
+            }
+
+            return trim((string) ($faq['question'] ?? '')) !== ''
+                || trim((string) ($faq['answer'] ?? '')) !== '';
+        }
+    ));
     $related    = nw_fuel_related_products(nw_fuel_json_meta($product_id, '_nw_related_slugs'));
     $category   = nw_fuel_product_category_name($product_id);
-    $vehicle_terms = nw_fuel_product_term_names($product_id, 'pa_vehicle-type');
-    $engine_terms  = nw_fuel_product_term_names($product_id, 'pa_engine-type');
+    $vehicle_terms = array_values(array_filter(
+        nw_fuel_product_term_names($product_id, 'pa_vehicle-type'),
+        static fn (mixed $term): bool => is_scalar($term) && trim((string) $term) !== ''
+    ));
+    $engine_terms  = array_values(array_filter(
+        nw_fuel_product_term_names($product_id, 'pa_engine-type'),
+        static fn (mixed $term): bool => is_scalar($term) && trim((string) $term) !== ''
+    ));
     $brand      = nw_fuel_product_term_names($product_id, 'pa_brand')[0] ?? '';
     $quote_feedback = nw_fuel_form_feedback('quote');
     ?>
@@ -158,28 +189,34 @@ while (have_posts()) :
   </div>
 </section>
 
+<?php if ($specs || $vehicles || $vehicle_terms || $engine_terms) : ?>
 <section class="product-detail-panel product-detail-panel--gray">
   <div class="container product-detail-panel__grid">
+    <?php if ($specs) : ?>
     <div class="product-detail-panel__block product-detail-panel__block--6">
       <h2 class="product-detail-panel__title"><?php esc_html_e('Specifications', 'nw-fuel'); ?></h2>
       <table class="product-spec">
-        <?php foreach ($specs as $spec) :
-            if (($spec['label'] ?? '') === 'Product Code') {
-                continue;
-            }
-        ?><tr><th scope="row"><?php echo esc_html($spec['label'] ?? ''); ?></th><td><?php echo esc_html($spec['value'] ?? ''); ?></td></tr><?php endforeach; ?>
+        <?php foreach ($specs as $spec) : ?><tr><th scope="row"><?php echo esc_html($spec['label'] ?? ''); ?></th><td><?php echo esc_html($spec['value'] ?? ''); ?></td></tr><?php endforeach; ?>
       </table>
     </div>
+    <?php endif; ?>
+    <?php if ($vehicles || $vehicle_terms || $engine_terms) : ?>
     <div class="product-detail-panel__block product-detail-panel__block--6">
       <h2 class="product-detail-panel__title"><?php esc_html_e('Compatible Vehicles', 'nw-fuel'); ?></h2>
+      <?php if ($vehicles) : ?>
       <ul class="product-buy__list product-buy__list--vehicles"><?php foreach ($vehicles as $vehicle) : ?><li><?php echo esc_html((string) $vehicle); ?></li><?php endforeach; ?></ul>
+      <?php endif; ?>
+      <?php if ($vehicle_terms || $engine_terms) : ?>
       <div class="product-tags">
         <?php foreach ($vehicle_terms as $vt) : ?><span class="product-tags__item"><?php echo esc_html($vt); ?></span><?php endforeach; ?>
         <?php foreach ($engine_terms as $et) : ?><span class="product-tags__item product-tags__item--dark"><?php echo esc_html($et); ?></span><?php endforeach; ?>
       </div>
+      <?php endif; ?>
     </div>
+    <?php endif; ?>
   </div>
 </section>
+<?php endif; ?>
 
 <?php if ($faqs) : ?><section class="product-detail-panel"><div class="container product-detail-panel--narrow"><p class="product-detail-panel__eyebrow"><?php esc_html_e('FAQ', 'nw-fuel'); ?></p><h2 class="product-detail-panel__title product-detail-panel__title--lg"><?php esc_html_e('Product Questions', 'nw-fuel'); ?></h2><?php $id = 'product-faq'; get_template_part('template-parts/faq', null, compact('faqs', 'id')); ?></div></section><?php endif; ?>
 
