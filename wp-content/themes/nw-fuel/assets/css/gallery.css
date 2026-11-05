@@ -91,6 +91,35 @@
   border: 1px solid var(--home-gray-200);
 }
 
+.gallery-card__open {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.82);
+  color: #fff;
+  cursor: pointer;
+  place-items: center;
+}
+
+.gallery-card__open:hover,
+.gallery-card__open:focus-visible {
+  background: #111;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.gallery-card__open span {
+  margin-left: 0.15rem;
+  font-size: 1rem;
+}
+
 .gallery-card__media iframe {
   border: 0;
 }
