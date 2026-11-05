@@ -99,12 +99,12 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
       <?php if ($api_managed) : ?>
       <p class="nw-api-managed-notice">
         <?php nw_fuel_admin_api_badge(); ?>
-        <?php esc_html_e('Changes to marked fields may be replaced by the nightly inventory sync.', 'nw-fuel'); ?>
+        <?php esc_html_e('Changes to marked fields may be replaced by the nightly inventory sync. Product title comes from CSV Description; product categories come from ECommerceCategory. Overview and the main Product Description remain manual.', 'nw-fuel'); ?>
       </p>
       <?php endif; ?>
       <div class="nw-admin-panel">
         <h3 class="nw-admin-panel__title"><?php esc_html_e('Catalog details', 'nw-fuel'); ?></h3>
-        <p class="nw-admin-panel__help"><?php esc_html_e('Use WooCommerce title, description, and categories in the main product fields. Brand is the Attributes → Brand list. These NW Fuel fields power the custom product page.', 'nw-fuel'); ?></p>
+        <p class="nw-admin-panel__help"><?php esc_html_e('The inventory sync updates the WooCommerce title and categories. Edit Overview, the main Product Description, photos, and other unmarked content manually. Brand is the Attributes → Brand list.', 'nw-fuel'); ?></p>
         <div class="nw-admin-grid nw-admin-grid--2">
           <?php
           nw_fuel_admin_field([
@@ -189,11 +189,11 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
         <?php
         nw_fuel_admin_field([
             'type'  => 'textarea',
-            'label' => __('Short Description (catalog lead)', 'nw-fuel'),
+            'label' => __('Overview / Short Description (manual)', 'nw-fuel'),
             'name'  => '_nw_short_description',
             'value' => $short,
             'rows'  => 2,
-            'api_managed' => $api_managed,
+            'help'  => __('This content is managed in WordPress and is not changed by the inventory sync.', 'nw-fuel'),
         ]);
         ?>
       </div>
