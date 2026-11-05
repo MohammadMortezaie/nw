@@ -1221,12 +1221,16 @@ function nw_fuel_product_category_icon_svg(string $category): string
 
     return match ($category) {
         'all' => '<svg ' . $attrs . '><path d="M8.5 3.5 12 2l3.5 1.5L19 6v5.5l-1.5 3.5L12 21l-5.5-6L5 11.5V6l3.5-2.5z"/><path d="M12 2v6.5M5 6l7 3.5M19 6l-7 3.5M12 21V14.5"/></svg>',
-        'Injectors' => '<svg ' . $attrs . '><path d="M8 4.5h8v3.5l-1.5 9H9.5l-1.5-9V4.5z"/><path d="M10 8h4M9.5 14h5"/></svg>',
+        'Injectors' => '<svg ' . $attrs . '><path d="M9 3h6v4l-1 2v7l-2 5-2-5V9L9 7V3z"/><path d="M8 6h8M10 10h4M10 15h4"/></svg>',
+        'Injection Pumps' => '<svg ' . $attrs . '><path d="M5 8h11a3 3 0 0 1 3 3v5H8a3 3 0 0 1-3-3V8z"/><path d="M8 8V5h6v3M19 12h2M9 12h5M7 19h3M16 19h3"/><circle cx="8.5" cy="12" r="1"/></svg>',
         'Pumps & Injectors' => '<svg ' . $attrs . '><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><path d="M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4l1.4-1.4M17 7l1.4-1.4"/></svg>',
-        'Turbos' => '<svg ' . $attrs . '><circle cx="12" cy="12" r="2.25"/><path d="M12 4.5v2.25M12 17.25V19.5M4.5 12h2.25M17.25 12H19.5"/><path d="M7.1 7.1l1.6 1.6M15.3 15.3l1.6 1.6M7.1 16.9l1.6-1.6M15.3 8.7l1.6-1.6"/></svg>',
-        'Component Parts', 'Engine Parts' => '<svg ' . $attrs . '><path d="M14.4 6.6a3.75 3.75 0 0 0-5.3 5.3L3.5 17.5V21h3.5l5.6-5.6a3.75 3.75 0 0 0 5.3-5.3l-2 2-2.8-2.8 2-2z"/></svg>',
-        'Fuel Additives' => '<svg ' . $attrs . '><path d="M12 3.5c-2.8 4-5.5 6.8-5.5 10a5.5 5.5 0 0 0 11 0c0-3.2-2.7-6-5.5-10z"/></svg>',
-        'Filters' => '<svg ' . $attrs . '><path d="M4 5h16l-6.5 7.5V19l-3 2v-6.5L4 5z"/></svg>',
+        'Turbos', 'Turbochargers' => '<svg ' . $attrs . '><path d="M12 4a8 8 0 1 0 8 8h-5"/><path d="M12 8a4 4 0 1 0 4 4h5"/><circle cx="12" cy="12" r="1.5"/><path d="M17 8h4v4"/></svg>',
+        'Component Parts', 'Engine Parts' => '<svg ' . $attrs . '><path d="M5 9h3l2-3h5l2 3h2v8H5V9z"/><path d="M8 17v2M16 17v2M8 12h2M14 12h2M12 6V3M9 3h6"/></svg>',
+        'Fuel System Components' => '<svg ' . $attrs . '><circle cx="6" cy="7" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="17" r="2.5"/><path d="M8.5 7h7M7.5 9l3.2 5.8M16.5 9l-3.2 5.8"/></svg>',
+        'Fuel Additives' => '<svg ' . $attrs . '><path d="M12 3c-3 4.2-5.5 7-5.5 10.2a5.5 5.5 0 0 0 11 0C17.5 10 15 7.2 12 3z"/><path d="M9.5 14.5c.5 1.2 1.4 1.8 2.7 1.8"/></svg>',
+        'Filters' => '<svg ' . $attrs . '><path d="M6 4h12l1 3-2 2v9l-2 2H9l-2-2V9L5 7l1-3z"/><path d="M7 9h10M7 13h10M7 17h10"/></svg>',
+        'Repair Kits' => '<svg ' . $attrs . '><path d="M4 8h16v11H4V8z"/><path d="M9 8V5h6v3M4 12h16M10 12v2h4v-2"/></svg>',
+        'Tools & Test Equipment' => '<svg ' . $attrs . '><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16v4h4l5.5-5.5a4 4 0 0 0 5-5l-2.3 2.3-4-4 2.3-2.3z"/><path d="M17 17h4M19 15v4"/></svg>',
         'brands' => '<svg ' . $attrs . '><path d="M4 7.5h16v9H4v-9z"/><path d="M8 7.5V5.5h8v2"/></svg>',
         default => '<svg ' . $attrs . '><path d="M12 3.5 19.5 7v10L12 21l-7.5-4V7L12 3.5z"/></svg>',
     };
