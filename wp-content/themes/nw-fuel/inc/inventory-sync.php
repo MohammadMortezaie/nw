@@ -500,7 +500,7 @@ function nw_fuel_parse_inventory_csv_file(string $path): array|WP_Error
         rewind($handle);
     }
 
-    $headers_raw = fgetcsv($handle);
+    $headers_raw = fgetcsv($handle, 0, ',', '"', '');
     if (! is_array($headers_raw) || $headers_raw === []) {
         fclose($handle);
         return new WP_Error('nw_fuel_csv_headers', __('CSV header row missing', 'nw-fuel'));
@@ -523,7 +523,7 @@ function nw_fuel_parse_inventory_csv_file(string $path): array|WP_Error
     }
 
     $rows = [];
-    while (($data = fgetcsv($handle)) !== false) {
+    while (($data = fgetcsv($handle, 0, ',', '"', '')) !== false) {
         if ($data === [null] || $data === false) {
             continue;
         }
@@ -600,9 +600,9 @@ function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, 
 /**
  * Create or update one WooCommerce product from a CSV row.
  *
- * Nightly API updates of existing products change name/title, both short
- * descriptions, category (when present), prices, quantity, alternates, and
- * brand. The main Product Description (post_content) is preserved.
+ * Description supplies the product title only. Existing manual overview,
+ * short-description, and main-description copy is preserved. Category comes
+ * from ECommerceCategory (canonicalized to Category by inventory-api.php).
  *
  * @param array<string, string> $row
  * @return 'created'|'updated'|'skipped'
@@ -620,16 +620,15 @@ function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only
 
     $file_title  = sanitize_text_field($row['Title'] ?? '');
     $file_desc   = sanitize_textarea_field($row['Description'] ?? '');
-    $title       = $file_title !== '' ? $file_title : ($file_desc !== '' ? sanitize_text_field($file_desc) : $part);
-    $description = $file_desc !== '' ? $file_desc : $title;
+    $title       = $file_desc !== '' ? sanitize_text_field($file_desc) : ($file_title !== '' ? $file_title : $part);
 
     $product_id = nw_fuel_find_product_id_by_part_number($part);
     $is_new     = false;
 
     $post_fields = [
         'post_title'   => $title,
-        'post_excerpt' => $description,
-        'post_content' => $description,
+        'post_excerpt' => '',
+        'post_content' => '',
     ];
 
     if ($product_id <= 0) {
@@ -648,11 +647,10 @@ function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only
         }
         $product_id = (int) $product_id;
     } elseif ($file_title !== '' || $file_desc !== '') {
-        $update_fields = $post_fields;
-        if ($prices_only) {
-            unset($update_fields['post_content']);
-        }
-        wp_update_post(array_merge(['ID' => $product_id], $update_fields));
+        wp_update_post([
+            'ID'         => $product_id,
+            'post_title' => $title,
+        ]);
     }
 
     $product = wc_get_product($product_id);
@@ -708,15 +706,11 @@ function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only
     if ($is_new || ! $prices_only) {
         update_post_meta($product_id, '_nw_oem_vendor', sanitize_text_field($row['OEMVendorNumber'] ?? ''));
     }
-    if ($file_title !== '' || $file_desc !== '') {
-        update_post_meta($product_id, '_nw_short_description', $description);
-    }
-
     return $is_new ? 'created' : 'updated';
 }
 
 /**
- * Category column → WooCommerce product_cat. Creates the term if it does not exist.
+ * ECommerceCategory → WooCommerce product_cat. Creates the term if it does not exist.
  * Matches existing categories case-insensitively. Comma/semicolon/pipe lists are allowed.
  */
 function nw_fuel_assign_inventory_category(int $product_id, string $category): void
@@ -962,7 +956,7 @@ function nw_fuel_render_inventory_sync_section(): void
     <hr>
     <h2><?php esc_html_e('Product sync', 'nw-fuel'); ?></h2>
     <?php if ($nightly) : ?>
-    <p><?php esc_html_e('Applies latest.csv every night at 1:00 AM America/Los_Angeles, in batches of 80. Column P = Yes is required to add or show a part. Existing Yes products: name/title, short descriptions, category (when a Category column is present), prices, quantity, search alternates, and brand (PriceBook). The main Product Description, photos, and other admin copy stay as-is. Column P = No hides the part. Missing rows are not deleted.', 'nw-fuel'); ?></p>
+    <p><?php esc_html_e('Applies latest.csv every night at 1:00 AM America/Los_Angeles, in batches of 80. ECommerceYesNo = Yes is required to add or show a part. Existing Yes products: title (from Description), category (from ECommerceCategory), prices, quantity, search alternates, and brand (PriceBook). Manual Overview, Short Description, main Product Description, photos, and other admin copy stay as-is. ECommerceYesNo = No hides the part. Missing rows are not deleted.', 'nw-fuel'); ?></p>
     <?php else : ?>
     <p><?php esc_html_e('Nightly API sync is off. Upload an Excel or CSV file above to apply it immediately. Match key: Part_Number → SKU / part number. Missing rows are left unchanged (not deleted).', 'nw-fuel'); ?></p>
     <?php endif; ?>

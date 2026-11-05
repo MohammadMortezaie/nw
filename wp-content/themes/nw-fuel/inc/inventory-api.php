@@ -598,6 +598,7 @@ function nw_fuel_inventory_canonical_header(string $name): string
         'itemcategory'        => 'Category',
         'webcategory'         => 'Category',
         'woocommercecategory' => 'Category',
+        'ecommercecategory'   => 'Category',
         'afs'                 => 'AvailableForSale',
         'availableforsale'    => 'AvailableForSale',
         'retail'              => 'ListTotal',
@@ -634,6 +635,7 @@ function nw_fuel_inventory_canonical_header(string $name): string
         'weblisting'          => 'Website',
         'yesno'               => 'Website',
         'columnp'             => 'Website',
+        'ecommerceyesno'      => 'Website',
     ];
 
     if ($key === '' || $key === 'notefor') {
@@ -713,7 +715,7 @@ function nw_fuel_validate_inventory_csv(string $bytes): array|WP_Error
     fwrite($stream, $bytes);
     rewind($stream);
 
-    $headers = fgetcsv($stream);
+    $headers = fgetcsv($stream, 0, ',', '"', '');
     if (! is_array($headers) || $headers === []) {
         fclose($stream);
         return new WP_Error('nw_fuel_csv_headers', __('CSV header row is missing.', 'nw-fuel'), ['status' => 400]);
@@ -738,7 +740,7 @@ function nw_fuel_validate_inventory_csv(string $bytes): array|WP_Error
     }
 
     $rows = 0;
-    while (($row = fgetcsv($stream)) !== false) {
+    while (($row = fgetcsv($stream, 0, ',', '"', '')) !== false) {
         if ($row === [null] || $row === false) {
             continue;
         }
@@ -948,7 +950,7 @@ function nw_fuel_render_inventory_api_page(): void
 
         <?php if ($mode === NW_FUEL_INVENTORY_MODE_MANUAL) : ?>
         <h2><?php esc_html_e('Manual file upload', 'nw-fuel'); ?></h2>
-        <p><?php esc_html_e('Upload .xlsx or .csv. Required: Item# / Part_Number, Description, AFS. Optional: Title, Category, Retail (H), discount levels I–L, Core, Alternates, Website Yes/No (P). Matching part numbers are updated; new part numbers are added. Title and Category columns can be omitted until the provider adds them.', 'nw-fuel'); ?></p>
+        <p><?php esc_html_e('Upload .xlsx or .csv. Required: Item# / Part_Number, Description, AFS. ECommerceCategory assigns WooCommerce product categories and creates missing categories. ECommerceYesNo controls website visibility. Description updates the product title only; manual Overview and Product Description content are preserved. Prices, Core, Alternates, and PriceBook are also synchronized when present.', 'nw-fuel'); ?></p>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
             <?php wp_nonce_field('nw_fuel_upload_inventory_file', 'nw_fuel_inventory_upload_nonce'); ?>
             <input type="hidden" name="action" value="nw_fuel_upload_inventory_file">
