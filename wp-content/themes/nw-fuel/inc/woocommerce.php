@@ -13,6 +13,7 @@ if (! defined('ABSPATH')) {
 
 add_action('after_setup_theme', 'nw_fuel_woocommerce_setup');
 add_action('init', 'nw_fuel_ensure_product_permalinks', 40);
+add_action('parse_request', 'nw_fuel_rate_limit_catalog_filters', 5);
 add_action('wp', 'nw_fuel_disable_woocommerce_checkout');
 add_filter('woocommerce_enqueue_styles', '__return_empty_array');
 add_filter('woocommerce_placeholder_img_src', 'nw_fuel_woocommerce_placeholder_img_src');
@@ -141,15 +142,57 @@ function nw_fuel_catalog_per_page(): int
 }
 
 /**
+ * Stop abusive filtered catalog requests before WordPress runs the product query.
+ */
+function nw_fuel_rate_limit_catalog_filters(WP $wp): void
+{
+    if (is_user_logged_in() || strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'GET') {
+        return;
+    }
+
+    $has_filter = false;
+    foreach (['q', 'category', 'brand', 'vehicle', 'engine'] as $key) {
+        if (array_key_exists($key, $_GET)) {
+            $has_filter = true;
+            break;
+        }
+    }
+    if (! $has_filter) {
+        return;
+    }
+
+    $shop_id   = function_exists('wc_get_page_id') ? (int) wc_get_page_id('shop') : 0;
+    $shop_path = $shop_id > 0 ? trim((string) get_page_uri($shop_id), '/') : '';
+    if ($shop_path === '') {
+        $shop_path = trim((string) wp_parse_url(nw_fuel_products_url(), PHP_URL_PATH), '/');
+    }
+
+    $request_path = trim((string) $wp->request, '/');
+    $is_catalog   = $request_path === $shop_path
+        || ($shop_path !== '' && str_starts_with($request_path, $shop_path . '/page/'));
+    if (! $is_catalog || nw_fuel_public_rate_limit('catalog_filters', 120, MINUTE_IN_SECONDS)) {
+        return;
+    }
+
+    nocache_headers();
+    header('Retry-After: ' . MINUTE_IN_SECONDS);
+    wp_die(
+        esc_html__('Too many catalog requests. Please wait a minute and try again.', 'nw-fuel'),
+        esc_html__('Too many requests', 'nw-fuel'),
+        ['response' => 429]
+    );
+}
+
+/**
  * Sanitize a catalog filter from the request.
  */
 function nw_fuel_catalog_request_text(string $key): string
 {
-    if (! isset($_GET[$key])) {
+    if (! isset($_GET[$key]) || ! is_scalar($_GET[$key])) {
         return '';
     }
 
-    return sanitize_text_field(wp_unslash((string) $_GET[$key]));
+    return nw_fuel_bounded_text(wp_unslash((string) $_GET[$key]));
 }
 
 /**

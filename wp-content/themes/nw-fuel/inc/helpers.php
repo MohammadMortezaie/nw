@@ -14,6 +14,53 @@ if (! defined('ABSPATH')) {
 add_action('wp_ajax_nw_fuel_product_search', 'nw_fuel_ajax_product_search');
 add_action('wp_ajax_nopriv_nw_fuel_product_search', 'nw_fuel_ajax_product_search');
 
+const NW_FUEL_SEARCH_QUERY_MAX_LENGTH = 100;
+
+/**
+ * Bound public text input before it reaches catalog queries or analytics.
+ */
+function nw_fuel_bounded_text(string $value, int $max_length = NW_FUEL_SEARCH_QUERY_MAX_LENGTH): string
+{
+    $value = trim(sanitize_text_field($value));
+
+    return mb_substr($value, 0, max(1, $max_length));
+}
+
+/**
+ * Best-effort, per-IP fixed-window limiter for public storefront endpoints.
+ *
+ * This deliberately uses REMOTE_ADDR rather than user-controlled forwarding
+ * headers. Edge/server rate limiting should remain the first line of defence.
+ */
+function nw_fuel_public_rate_limit(string $scope, int $limit, int $window_seconds): bool
+{
+    $limit          = max(1, $limit);
+    $window_seconds = max(1, $window_seconds);
+    $remote_address = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+    $window         = (int) floor(time() / $window_seconds);
+    $identity       = hash_hmac('sha256', $remote_address, wp_salt('nonce'));
+    $key            = 'nw_fuel_rl_' . substr(hash('sha256', $scope . '|' . $identity . '|' . $window), 0, 32);
+    $hits           = (int) get_transient($key);
+
+    if ($hits >= $limit) {
+        return false;
+    }
+
+    set_transient($key, $hits + 1, $window_seconds + MINUTE_IN_SECONDS);
+
+    return true;
+}
+
+/**
+ * Return a small, cache-safe response when a public AJAX endpoint is busy.
+ */
+function nw_fuel_send_rate_limit_response(int $retry_after): void
+{
+    nocache_headers();
+    header('Retry-After: ' . max(1, $retry_after));
+    wp_send_json_error(['message' => __('Too many requests. Please try again shortly.', 'nw-fuel')], 429);
+}
+
 /**
  * Whether WooCommerce is active.
  */
@@ -711,11 +758,12 @@ function nw_fuel_product_search_suggestion(int $product_id): array
  */
 function nw_fuel_product_search_suggestions(string $query, int $limit = 6): array
 {
+    $query = nw_fuel_bounded_text($query);
+
     if (! nw_fuel_is_woocommerce_active() || strlen(trim($query)) < 2) {
         return [];
     }
 
-    $query = sanitize_text_field($query);
     $limit = max(1, min(20, $limit));
     $ids   = nw_fuel_product_search_match_ids($query, max(24, $limit * 4));
 
@@ -1025,14 +1073,18 @@ function nw_fuel_product_search_index(): array
 
 function nw_fuel_ajax_product_search(): void
 {
-    $query = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['q'])) : '';
-    $limit = isset($_REQUEST['limit']) ? absint($_REQUEST['limit']) : 6;
+    if (! nw_fuel_public_rate_limit('product_suggestions', 60, MINUTE_IN_SECONDS)) {
+        nw_fuel_send_rate_limit_response(MINUTE_IN_SECONDS);
+    }
+
+    $query = isset($_REQUEST['q']) && is_scalar($_REQUEST['q'])
+        ? nw_fuel_bounded_text(wp_unslash((string) $_REQUEST['q']))
+        : '';
+    $limit = isset($_REQUEST['limit']) && is_scalar($_REQUEST['limit'])
+        ? absint($_REQUEST['limit'])
+        : 6;
 
     $suggestions = nw_fuel_product_search_suggestions($query, $limit);
-
-    if ($query !== '' && function_exists('nw_fuel_track_product_search')) {
-        nw_fuel_track_product_search($query, array_map('intval', array_column($suggestions, 'id')));
-    }
 
     wp_send_json_success($suggestions);
 }

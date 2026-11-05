@@ -202,9 +202,20 @@ function nw_fuel_ajax_product_search_hit(): void
 {
     nocache_headers();
 
-    $term = isset($_REQUEST['q']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['q'])) : '';
-    $ids  = isset($_REQUEST['ids']) ? sanitize_text_field(wp_unslash((string) $_REQUEST['ids'])) : '';
-    $product_ids = array_values(array_filter(array_map('absint', explode(',', $ids))));
+    $term = isset($_REQUEST['q']) && is_scalar($_REQUEST['q'])
+        ? nw_fuel_bounded_text(wp_unslash((string) $_REQUEST['q']))
+        : '';
+    $ids = isset($_REQUEST['ids']) && is_scalar($_REQUEST['ids'])
+        ? sanitize_text_field(wp_unslash((string) $_REQUEST['ids']))
+        : '';
+    $product_ids = array_slice(
+        array_values(array_unique(array_filter(array_map('absint', explode(',', $ids))))),
+        0,
+        20
+    );
+    $product_ids = array_values(array_filter($product_ids, static function (int $product_id): bool {
+        return get_post_type($product_id) === 'product' && get_post_status($product_id) === 'publish';
+    }));
 
     if ($term !== '') {
         nw_fuel_track_product_search($term, $product_ids);
@@ -255,7 +266,7 @@ function nw_fuel_log_search_query(string $term, array $product_ids): void
  */
 function nw_fuel_track_product_search(string $term, array $product_ids): void
 {
-    $term = trim($term);
+    $term = nw_fuel_bounded_text($term);
     if ($term === '' || ! nw_fuel_product_report_should_track()) {
         return;
     }
@@ -264,7 +275,12 @@ function nw_fuel_track_product_search(string $term, array $product_ids): void
         return;
     }
 
-    $term        = mb_substr($term, 0, 190);
+    // A normal user will not submit anywhere near this many completed searches.
+    // Limit database writes while leaving autocomplete on its separate limiter.
+    if (! nw_fuel_public_rate_limit('product_search_tracking', 60, 10 * MINUTE_IN_SECONDS)) {
+        return;
+    }
+
     $fingerprint = md5(nw_fuel_report_visitor_fingerprint());
     $day         = current_time('Ymd');
 
