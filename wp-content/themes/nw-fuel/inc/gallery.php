@@ -19,7 +19,6 @@ add_action('manage_nw_gallery_item_posts_custom_column', 'nw_fuel_gallery_column
 add_filter('enter_title_here', 'nw_fuel_gallery_title_placeholder', 10, 2);
 add_action('template_redirect', 'nw_fuel_redirect_gallery_singles');
 add_action('init', 'nw_fuel_maybe_flush_gallery_rewrites', 30);
-add_action('admin_init', 'nw_fuel_ensure_gallery_nav_item');
 add_action('admin_menu', 'nw_fuel_hide_gallery_admin_menu', 99);
 add_action('admin_init', 'nw_fuel_block_gallery_admin_for_others');
 add_action('admin_bar_menu', 'nw_fuel_hide_gallery_admin_bar', 999);

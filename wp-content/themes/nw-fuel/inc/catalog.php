@@ -29,7 +29,6 @@ add_filter('post_row_actions', 'nw_fuel_catalog_row_actions', 10, 2);
 add_action('add_meta_boxes_nw_catalog_lead', 'nw_fuel_catalog_lead_meta_boxes');
 add_action('restrict_manage_posts', 'nw_fuel_catalog_lead_export_button', 10, 2);
 add_action('admin_post_nw_fuel_export_catalog_leads', 'nw_fuel_export_catalog_leads');
-add_filter('wp_nav_menu_objects', 'nw_fuel_filter_catalog_nav_items', 20, 2);
 add_action('template_redirect', 'nw_fuel_block_catalog_front_for_others', 1);
 add_action('admin_menu', 'nw_fuel_hide_catalog_admin_menu', 99);
 add_action('admin_init', 'nw_fuel_block_catalog_admin_for_others');

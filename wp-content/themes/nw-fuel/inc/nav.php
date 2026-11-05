@@ -11,53 +11,6 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-add_filter('wp_nav_menu_objects', 'nw_fuel_filter_primary_nav_items', 15, 2);
-
-/**
- * Navbar only: About, Contact, no Blog.
- *
- * @param list<object> $items
- * @param stdClass     $args
- * @return list<object>
- */
-function nw_fuel_filter_primary_nav_items(array $items, $args): array
-{
-    $location = is_object($args) ? (string) ($args->theme_location ?? '') : '';
-    if ($location !== 'primary') {
-        return $items;
-    }
-
-    $blog_id = (int) get_option('page_for_posts');
-    $out     = [];
-
-    foreach ($items as $item) {
-        $title     = trim((string) ($item->title ?? ''));
-        $url       = (string) ($item->url ?? '');
-        $object_id = (int) ($item->object_id ?? 0);
-
-        if (strcasecmp($title, 'Blog') === 0) {
-            continue;
-        }
-        if ($blog_id > 0 && $object_id === $blog_id) {
-            continue;
-        }
-        if (preg_match('~/blog/?$~i', $url)) {
-            continue;
-        }
-
-        if (strcasecmp($title, 'About Us') === 0) {
-            $item->title = __('About', 'nw-fuel');
-        }
-        if (strcasecmp($title, 'Contact Us') === 0) {
-            $item->title = __('Contact', 'nw-fuel');
-        }
-
-        $out[] = $item;
-    }
-
-    return $out;
-}
-
 /**
  * Whether the primary menu has items assigned.
  */
@@ -88,8 +41,6 @@ function nw_fuel_render_primary_nav_desktop(): void
             'fallback_cb'    => false,
             'walker'         => new NW_Fuel_Primary_Nav_Walker('desktop'),
         ]);
-        nw_fuel_render_gallery_nav_link('desktop');
-        nw_fuel_render_catalog_nav_link('desktop');
         return;
     }
 
@@ -110,8 +61,6 @@ function nw_fuel_render_primary_nav_mobile(): void
             'fallback_cb'    => false,
             'walker'         => new NW_Fuel_Primary_Nav_Walker('mobile'),
         ]);
-        nw_fuel_render_gallery_nav_link('mobile');
-        nw_fuel_render_catalog_nav_link('mobile');
         return;
     }
 
