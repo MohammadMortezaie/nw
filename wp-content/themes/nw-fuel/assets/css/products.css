@@ -366,6 +366,7 @@ body.page-products {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border: 1px solid var(--home-gray-200);
   background: var(--home-white);
@@ -376,6 +377,21 @@ body.page-products {
   text-transform: uppercase;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
+.catalog-cats__pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 1.15rem;
+  color: var(--home-gray-500);
+  transition: color 0.2s;
+}
+.catalog-cats__pill-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .catalog-cats__pill:hover {
   border-color: var(--home-black);
   background: var(--home-gray-100);
@@ -383,6 +399,12 @@ body.page-products {
 .catalog-cats__pill.is-active {
   background: var(--home-black);
   border-color: var(--home-black);
+  color: #fff;
+}
+.catalog-cats__pill:hover .catalog-cats__pill-icon {
+  color: var(--home-black);
+}
+.catalog-cats__pill.is-active .catalog-cats__pill-icon {
   color: #fff;
 }
 

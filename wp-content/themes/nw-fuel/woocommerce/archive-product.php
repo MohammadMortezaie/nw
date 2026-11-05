@@ -109,9 +109,15 @@ $hero_quick_links = [
 <section class="catalog-cats" aria-label="<?php esc_attr_e('Shop by category', 'nw-fuel'); ?>">
   <div class="container">
     <div class="catalog-cats__scroll">
-      <a href="<?php echo esc_url(nw_fuel_products_url()); ?>" class="catalog-cats__pill<?php echo $initial_category === '' ? ' is-active' : ''; ?>" data-category-pill=""><?php esc_html_e('All Parts', 'nw-fuel'); ?></a>
+      <a href="<?php echo esc_url(nw_fuel_products_url()); ?>" class="catalog-cats__pill<?php echo $initial_category === '' ? ' is-active' : ''; ?>" data-category-pill="">
+        <span class="catalog-cats__pill-icon" aria-hidden="true"><?php echo nw_fuel_product_category_icon_svg('all'); ?></span>
+        <span><?php esc_html_e('All Parts', 'nw-fuel'); ?></span>
+      </a>
       <?php foreach ($product_categories as $cat) : ?>
-      <a href="<?php echo esc_url(add_query_arg('category', $cat, nw_fuel_products_url())); ?>" class="catalog-cats__pill<?php echo $initial_category === $cat ? ' is-active' : ''; ?>" data-category-pill="<?php echo esc_attr($cat); ?>"><?php echo esc_html($cat); ?></a>
+      <a href="<?php echo esc_url(add_query_arg('category', $cat, nw_fuel_products_url())); ?>" class="catalog-cats__pill<?php echo $initial_category === $cat ? ' is-active' : ''; ?>" data-category-pill="<?php echo esc_attr($cat); ?>">
+        <span class="catalog-cats__pill-icon" aria-hidden="true"><?php echo nw_fuel_product_category_icon_svg($cat); ?></span>
+        <span><?php echo esc_html($cat); ?></span>
+      </a>
       <?php endforeach; ?>
     </div>
   </div>
