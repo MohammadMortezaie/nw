@@ -197,6 +197,7 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
     $replace = ! empty($opts['replace']);
     $wait    = ! empty($opts['wait']) || $source === 'cli';
     $started = gmdate('c');
+    $import_id = wp_generate_uuid4();
 
     if (nw_fuel_inventory_sync_is_active()) {
         $state = nw_fuel_inventory_sync_state();
@@ -210,6 +211,7 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
             ),
             'source'  => (string) ($state['source'] ?? $source),
             'started' => (string) ($state['started'] ?? $started),
+            'import_id'=> (string) ($state['import_id'] ?? ''),
             'finished'=> '',
             'created' => (int) ($state['created'] ?? 0),
             'updated' => (int) ($state['updated'] ?? 0),
@@ -229,8 +231,10 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
             'source'  => $source,
             'started' => $started,
             'finished'=> gmdate('c'),
+            'import_id'=> $import_id,
         ];
         update_option('nw_fuel_inventory_sync_last', $result, false);
+        do_action('nw_fuel_inventory_sync_complete', $result);
         return $result;
     }
 
@@ -242,8 +246,10 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
             'source'  => $source,
             'started' => $started,
             'finished'=> gmdate('c'),
+            'import_id'=> $import_id,
         ];
         update_option('nw_fuel_inventory_sync_last', $result, false);
+        do_action('nw_fuel_inventory_sync_complete', $result);
         return $result;
     }
 
@@ -255,8 +261,10 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
             'source'  => $source,
             'started' => $started,
             'finished'=> gmdate('c'),
+            'import_id'=> $import_id,
         ];
         update_option('nw_fuel_inventory_sync_last', $result, false);
+        do_action('nw_fuel_inventory_sync_complete', $result);
         return $result;
     }
 
@@ -276,6 +284,7 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
         'log'        => [],
         'keep_parts' => [],
         'started'    => $started,
+        'import_id'  => $import_id,
         'updated_at' => $started,
     ];
     update_option(NW_FUEL_INVENTORY_SYNC_STATE, $state, false);
@@ -293,6 +302,7 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
         'removed' => 0,
         'errors'  => 0,
         'started' => $started,
+        'import_id'=> $import_id,
         'finished'=> '',
     ];
     update_option('nw_fuel_inventory_sync_last', $result, false);
@@ -382,7 +392,11 @@ function nw_fuel_process_inventory_sync_batch(): array
 
         try {
             $prices_only = (($state['source'] ?? '') !== 'manual_upload');
-            $outcome     = nw_fuel_upsert_product_from_inventory_row($row, $prices_only);
+            $outcome     = nw_fuel_upsert_product_from_inventory_row(
+                $row,
+                $prices_only,
+                (string) ($state['import_id'] ?? '')
+            );
             if ($outcome === 'created') {
                 $state['created'] = (int) $state['created'] + 1;
             } elseif ($outcome === 'updated') {
@@ -418,6 +432,7 @@ function nw_fuel_process_inventory_sync_batch(): array
             'removed' => (int) $state['removed'],
             'errors'  => (int) $state['errors'],
             'started' => (string) ($state['started'] ?? ''),
+            'import_id'=> (string) ($state['import_id'] ?? ''),
             'finished'=> '',
             'log'     => $log,
         ];
@@ -467,6 +482,7 @@ function nw_fuel_finalize_inventory_sync(array $state, bool $ok, string $message
         'errors'    => (int) ($state['errors'] ?? 0),
         'log'       => is_array($state['log'] ?? null) ? $state['log'] : [],
         'started'   => (string) ($state['started'] ?? ''),
+        'import_id' => (string) ($state['import_id'] ?? ''),
         'finished'  => gmdate('c'),
     ];
 
@@ -567,7 +583,7 @@ function nw_fuel_inventory_row_stock_qty(array $row): int
  *
  * @param array<string, string> $row
  */
-function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, bool $only_present): void
+function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, bool $only_present, string $import_id = ''): void
 {
     $product_id = $product->get_id();
     $stock_qty  = nw_fuel_inventory_row_stock_qty($row);
@@ -589,11 +605,19 @@ function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, 
         'CostPCore'      => '_nw_cost_p_core',
     ];
 
+    if (function_exists('nw_fuel_price_review_filter_inventory_prices')) {
+        $row = nw_fuel_price_review_filter_inventory_prices($product_id, $row, $only_present, $import_id);
+    }
+
     foreach ($price_map as $column => $meta_key) {
         if ($only_present && ! array_key_exists($column, $row)) {
             continue;
         }
         update_post_meta($product_id, $meta_key, nw_fuel_inventory_parse_money((string) ($row[$column] ?? '')));
+    }
+
+    if (function_exists('nw_fuel_price_review_record_history')) {
+        nw_fuel_price_review_record_history($product_id, $import_id);
     }
 }
 
@@ -607,7 +631,7 @@ function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, 
  * @param array<string, string> $row
  * @return 'created'|'updated'|'skipped'
  */
-function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only = false): string
+function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only = false, string $import_id = ''): string
 {
     $part = sanitize_text_field($row['Part_Number'] ?? '');
     if ($part === '') {
@@ -673,7 +697,7 @@ function nw_fuel_upsert_product_from_inventory_row(array $row, bool $prices_only
         $product->set_catalog_visibility('visible');
     }
 
-    nw_fuel_apply_inventory_price_and_qty($product, $row, $prices_only && ! $is_new);
+    nw_fuel_apply_inventory_price_and_qty($product, $row, $prices_only && ! $is_new, $import_id);
 
     update_post_meta($product_id, '_nw_part_number', $part);
     if ($prices_only) {

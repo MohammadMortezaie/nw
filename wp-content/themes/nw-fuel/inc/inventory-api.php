@@ -1233,6 +1233,9 @@ function nw_fuel_handle_upload_inventory_file(): void
     $redirect = admin_url('tools.php?page=nw-fuel-inventory-api');
 
     if (! nw_fuel_inventory_is_manual_mode()) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure('Manual file upload attempted while nightly API mode is active.', 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => __('Switch the product list source to Manual Excel / CSV before uploading.', 'nw-fuel'),
@@ -1242,6 +1245,9 @@ function nw_fuel_handle_upload_inventory_file(): void
     }
 
     if (empty($_FILES['nw_fuel_inventory_file']['tmp_name'])) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure('No file was selected for the manual inventory upload.', 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => __('Choose a .xlsx or .csv file to upload.', 'nw-fuel'),
@@ -1252,6 +1258,9 @@ function nw_fuel_handle_upload_inventory_file(): void
 
     $file = $_FILES['nw_fuel_inventory_file'];
     if ((int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure('The manual inventory file upload failed before validation.', 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => __('File upload failed. Try again or use a smaller file.', 'nw-fuel'),
@@ -1265,6 +1274,9 @@ function nw_fuel_handle_upload_inventory_file(): void
 
     $csv_bytes = nw_fuel_inventory_uploaded_file_to_csv($tmp, $name);
     if (is_wp_error($csv_bytes)) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure($csv_bytes->get_error_message(), 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => $csv_bytes->get_error_message(),
@@ -1276,6 +1288,9 @@ function nw_fuel_handle_upload_inventory_file(): void
     $csv_bytes  = nw_fuel_normalize_inventory_csv_bytes($csv_bytes);
     $validation = nw_fuel_validate_inventory_csv($csv_bytes);
     if (is_wp_error($validation)) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure($validation->get_error_message(), 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => $validation->get_error_message(),
@@ -1286,6 +1301,9 @@ function nw_fuel_handle_upload_inventory_file(): void
 
     $saved = nw_fuel_store_inventory_csv($csv_bytes, $name);
     if (is_wp_error($saved)) {
+        if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
+            nw_fuel_alert_inventory_upload_failure($saved->get_error_message(), 'manual_upload');
+        }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
             'message' => $saved->get_error_message(),

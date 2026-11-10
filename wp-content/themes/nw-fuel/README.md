@@ -42,7 +42,7 @@ No Elementor, Bootstrap, Tailwind, or page builders.
 5. **Settings → Permalinks** → Save.
 6. **Settings → Reading**: Front page = **Home**, Posts page = **Blog**.
 7. WooCommerce shop page = **Products** (`/products/`).
-8. Configure SMTP so contact/quote forms deliver.
+8. Verify `wp_mail()` delivery. SMTP is optional when the host mail transport and domain authentication deliver reliably.
 
 ## Where to edit content
 
@@ -51,12 +51,21 @@ No Elementor, Bootstrap, Tailwind, or page builders.
 | Logo, phone, email, address, social, homepage copy | **Appearance → Customize** (NW Fuel sections) |
 | Business + JSON maps (images, About, FAQs) | **Appearance → NW Fuel Settings** |
 | Products | WooCommerce → Products |
+| Held price decreases, approval history, alert settings | Products → Price Review |
 | Specs / part # / FAQs | Product → NW Fuel Product Details |
 | Services | **Services** → edit any service → **Service Page Content** box (Add/Remove rows; no JSON) |
 | Technical pages | Technical Pages CPT |
 | Blog | Posts |
 | About / Contact | Pages |
 | Menus | Appearance → Menus (Primary, Footer) |
+
+## Inventory price review
+
+- Each inventory sync compares Retail, Wholesale, Trade, and Special 1–3 prices with the currently approved product values.
+- Decreases at or above the configurable threshold are held; the current price stays live until an administrator approves the proposal.
+- All held products from one import are combined into one alert email. Import failures also generate one alert; invalid API-key traffic is excluded.
+- Pending changes never auto-approve. Rejected identical proposals remain held without creating the same review and email every night.
+- Administrators can approve or reject several products together under **Products → Price Review** and inspect the retained price history chart.
 
 ## URL map
 

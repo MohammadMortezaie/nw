@@ -11,7 +11,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('NW_FUEL_VERSION', '1.12.4');
+define('NW_FUEL_VERSION', '1.13.0');
 define('NW_FUEL_DIR', get_template_directory());
 define('NW_FUEL_URI', get_template_directory_uri());
 
@@ -42,6 +42,7 @@ require_once NW_FUEL_DIR . '/inc/importer.php';
 require_once NW_FUEL_DIR . '/inc/inventory-xlsx.php';
 require_once NW_FUEL_DIR . '/inc/inventory-api.php';
 require_once NW_FUEL_DIR . '/inc/inventory-sync.php';
+require_once NW_FUEL_DIR . '/inc/price-review.php';
 require_once NW_FUEL_DIR . '/inc/partners.php';
 require_once NW_FUEL_DIR . '/inc/rewrites.php';
 
