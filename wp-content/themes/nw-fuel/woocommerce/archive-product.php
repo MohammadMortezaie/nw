@@ -36,23 +36,27 @@ $copy                = nw_fuel_archive_content('products');
 $hero_quick_links = [
     [
         'label'  => __('Shop Category', 'nw-fuel'),
-        'title'  => __('Pumps & Injectors', 'nw-fuel'),
-        'cta'    => __('View Pumps & Injectors', 'nw-fuel'),
-        'href'   => add_query_arg('category', 'Pumps & Injectors', nw_fuel_products_url()) . '#product-catalog',
+        'title'  => __('Injectors', 'nw-fuel'),
+        'cta'    => __('View Injectors', 'nw-fuel'),
+        'href'   => add_query_arg('category', 'Injectors', nw_fuel_products_url()) . '#product-catalog',
         'image'  => $images['labEquipment']['lg'] ?? $images['warehouseParts']['lg'] ?? '',
-        'icon'   => nw_fuel_product_category_icon_svg('Pumps & Injectors'),
-        'active' => $initial_category === 'Pumps & Injectors',
-        'category' => 'Pumps & Injectors',
+        'icon'   => nw_fuel_product_category_icon_svg('Injectors'),
+        'diagram_icon' => nw_fuel_product_category_icon_svg('Injectors'),
+        'visual' => 'pump',
+        'active' => $initial_category === 'Injectors',
+        'category' => 'Injectors',
     ],
     [
         'label'  => __('Shop Category', 'nw-fuel'),
-        'title'  => __('Turbos', 'nw-fuel'),
-        'cta'    => __('View Turbos', 'nw-fuel'),
-        'href'   => add_query_arg('category', 'Turbos', nw_fuel_products_url()) . '#product-catalog',
+        'title'  => __('Turbochargers', 'nw-fuel'),
+        'cta'    => __('View Turbochargers', 'nw-fuel'),
+        'href'   => add_query_arg('category', 'Turbochargers', nw_fuel_products_url()) . '#product-catalog',
         'image'  => $images['turboEngine']['lg'] ?? $images['engineParts']['lg'] ?? $images['warehouseParts']['lg'] ?? '',
         'icon'   => nw_fuel_product_category_icon_svg('Turbos'),
-        'active' => $initial_category === 'Turbos',
-        'category' => 'Turbos',
+        'diagram_icon' => nw_fuel_product_category_icon_svg('Turbos'),
+        'visual' => 'turbo',
+        'active' => $initial_category === 'Turbochargers',
+        'category' => 'Turbochargers',
     ],
     [
         'label'  => __('Search Parts', 'nw-fuel'),
@@ -61,13 +65,23 @@ $hero_quick_links = [
         'href'   => add_query_arg('category', 'Engine Parts', nw_fuel_products_url()) . '#product-catalog',
         'image'  => $images['engineParts']['lg'] ?? $images['warehouseParts']['lg'] ?? '',
         'icon'   => nw_fuel_product_category_icon_svg('Engine Parts'),
+        'diagram_icon' => nw_fuel_product_category_icon_svg('Engine Parts'),
+        'visual' => 'engine',
         'active' => $initial_category === 'Engine Parts',
         'category' => 'Engine Parts',
     ],
 ];
 ?>
 <section class="hero hero--products">
-  <img class="hero__bg" src="<?php echo esc_url($images['warehouseParts']['lg'] ?? $images['hero'] ?? ''); ?>" alt="">
+  <span class="product-hero-backdrop" aria-hidden="true">
+    <span class="product-hero-backdrop__mesh"></span>
+    <span class="product-hero-backdrop__dial product-hero-backdrop__dial--blue"></span>
+    <span class="product-hero-backdrop__dial product-hero-backdrop__dial--green"></span>
+    <span class="product-hero-backdrop__pulse">
+      <i></i><i></i><i></i>
+    </span>
+    <span class="product-hero-backdrop__rail"></span>
+  </span>
   <div class="hero__overlay"></div>
   <div class="container hero__content">
     <p class="hero__eyebrow hero__fade"><?php echo esc_html($copy['eyebrow'] ?? ''); ?></p>
@@ -75,8 +89,12 @@ $hero_quick_links = [
     <p class="hero__desc hero__fade"><?php echo esc_html($copy['desc'] ?? ''); ?></p>
     <div class="product-hero-portals hero__fade">
       <?php foreach ($hero_quick_links as $link) : ?>
-      <a href="<?php echo esc_url($link['href']); ?>" class="product-hero-portal<?php echo $link['active'] ? ' is-active' : ''; ?>" data-hero-portal-category="<?php echo esc_attr($link['category']); ?>"<?php echo $link['active'] ? ' aria-current="true"' : ''; ?>>
-        <img class="product-hero-portal__bg" src="<?php echo esc_url($link['image']); ?>" alt="">
+      <a href="<?php echo esc_url($link['href']); ?>" class="product-hero-portal product-hero-portal--tech product-hero-portal--<?php echo esc_attr($link['visual']); ?><?php echo $link['active'] ? ' is-active' : ''; ?>" data-hero-portal-category="<?php echo esc_attr($link['category']); ?>"<?php echo $link['active'] ? ' aria-current="true"' : ''; ?>>
+        <span class="product-hero-portal__tech" aria-hidden="true">
+          <span class="product-hero-portal__status"></span>
+          <span class="product-hero-portal__diagram-icon"><?php echo $link['diagram_icon']; ?></span>
+          <span class="product-hero-portal__measure"></span>
+        </span>
         <span class="product-hero-portal__overlay" aria-hidden="true"></span>
         <span class="product-hero-portal__content">
           <span class="product-hero-portal__icon" aria-hidden="true"><?php echo $link['icon']; ?></span>

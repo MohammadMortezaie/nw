@@ -257,18 +257,34 @@ function nw_fuel_shop_catalog_tax_query(array $tax_query, WC_Query $wc_query): a
             continue;
         }
 
-        $term = get_term_by('name', $value, $taxonomy);
-        if (! $term instanceof WP_Term) {
-            $term = get_term_by('slug', sanitize_title($value), $taxonomy);
+        $values = [$value];
+        if ($param === 'category') {
+            if (strcasecmp($value, 'Turbos') === 0) {
+                // Backward compatibility for older cached hero links.
+                $values = ['Turbochargers'];
+            }
         }
-        if (! $term instanceof WP_Term) {
+
+        $term_ids = [];
+        foreach ($values as $term_value) {
+            $term = get_term_by('name', $term_value, $taxonomy);
+            if (! $term instanceof WP_Term) {
+                $term = get_term_by('slug', sanitize_title($term_value), $taxonomy);
+            }
+            if ($term instanceof WP_Term) {
+                $term_ids[] = (int) $term->term_id;
+            }
+        }
+
+        if ($term_ids === []) {
             continue;
         }
 
         $tax_query[] = [
             'taxonomy' => $taxonomy,
             'field'    => 'term_id',
-            'terms'    => [$term->term_id],
+            'terms'    => array_values(array_unique($term_ids)),
+            'operator' => 'IN',
         ];
     }
 

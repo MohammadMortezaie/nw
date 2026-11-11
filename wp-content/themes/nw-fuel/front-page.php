@@ -43,8 +43,14 @@ $newsletter_feedback = nw_fuel_form_feedback('newsletter');
     <h1 class="hero__title hero__fade"><?php echo esc_html($home['hero_title']); ?></h1>
     <p class="hero__desc hero__fade"><?php echo esc_html($home['hero_desc']); ?></p>
     <div class="hero-portals hero__fade">
-      <a href="<?php echo esc_url(nw_fuel_products_url()); ?>" class="hero-portal">
-        <img class="hero-portal__bg" src="<?php echo esc_url($images['warehouseParts']['lg'] ?? $images['hero'] ?? ''); ?>" alt="">
+      <a href="<?php echo esc_url(nw_fuel_products_url()); ?>" class="hero-portal hero-portal--motion hero-portal--parts">
+        <span class="hero-portal__motion" aria-hidden="true">
+          <span class="hero-portal__grid"></span>
+          <span class="hero-portal__ring hero-portal__ring--one"></span>
+          <span class="hero-portal__ring hero-portal__ring--two"></span>
+          <span class="hero-portal__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          <span class="hero-portal__data">01&nbsp;&nbsp;PARTS&nbsp;&nbsp;INVENTORY&nbsp;&nbsp;LIVE</span>
+        </span>
         <span class="hero-portal__overlay" aria-hidden="true"></span>
         <span class="hero-portal__content">
           <span class="hero-portal__icon" aria-hidden="true">
@@ -55,8 +61,14 @@ $newsletter_feedback = nw_fuel_form_feedback('newsletter');
           <span class="hero-portal__cta"><?php echo esc_html($home['portal_parts_cta']); ?></span>
         </span>
       </a>
-      <a href="<?php echo esc_url(get_post_type_archive_link('nw_service')); ?>" class="hero-portal">
-        <img class="hero-portal__bg" src="<?php echo esc_url($images['labEquipment']['lg'] ?? $images['hero'] ?? ''); ?>" alt="">
+      <a href="<?php echo esc_url(get_post_type_archive_link('nw_service')); ?>" class="hero-portal hero-portal--motion hero-portal--service">
+        <span class="hero-portal__motion" aria-hidden="true">
+          <span class="hero-portal__grid"></span>
+          <span class="hero-portal__ring hero-portal__ring--one"></span>
+          <span class="hero-portal__ring hero-portal__ring--two"></span>
+          <span class="hero-portal__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+          <span class="hero-portal__data">02&nbsp;&nbsp;CALIBRATE&nbsp;&nbsp;TEST&nbsp;&nbsp;REBUILD</span>
+        </span>
         <span class="hero-portal__overlay" aria-hidden="true"></span>
         <span class="hero-portal__content">
           <span class="hero-portal__icon" aria-hidden="true">

@@ -99,6 +99,138 @@
   transform: scale(1.06);
   opacity: 0.48;
 }
+.hero-portal--motion {
+  --portal-accent: #70bf44;
+  background: #07090b;
+  isolation: isolate;
+}
+.hero-portal--service {
+  --portal-accent: #0097dc;
+}
+.hero-portal__motion {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 42%, color-mix(in srgb, var(--portal-accent) 16%, transparent), transparent 35%),
+    linear-gradient(125deg, #050607 0%, #101316 68%, color-mix(in srgb, var(--portal-accent) 7%, #080a0c) 100%);
+}
+.hero-portal__motion::before,
+.hero-portal__motion::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: var(--portal-accent);
+  box-shadow:
+    36px 18px 0 -1px var(--portal-accent),
+    76px -12px 0 -1px var(--portal-accent),
+    112px 30px 0 -1px var(--portal-accent),
+    160px 4px 0 -1px var(--portal-accent);
+  opacity: 0.28;
+}
+.hero-portal__motion::before {
+  width: 3px;
+  height: 3px;
+  top: 23%;
+  left: 47%;
+}
+.hero-portal__motion::after {
+  width: 2px;
+  height: 2px;
+  top: 68%;
+  left: 58%;
+}
+.hero-portal__grid {
+  position: absolute;
+  inset: -35%;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--portal-accent) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--portal-accent) 20%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  transform: perspective(260px) rotateX(58deg) rotateZ(-8deg) translateY(18%);
+  transform-origin: center center;
+  opacity: 0.22;
+  animation: hero-portal-grid 18s linear infinite;
+}
+.hero-portal__ring {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  width: 7.25rem;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 60%, transparent);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--portal-accent) 9%, transparent);
+  opacity: 0.38;
+}
+.hero-portal__ring--one {
+  border-style: dashed;
+  animation: hero-portal-ring 24s linear infinite;
+}
+.hero-portal__ring--two {
+  width: 5.25rem;
+  right: calc(8% + 1rem);
+  border-color: color-mix(in srgb, var(--portal-accent) 34%, transparent);
+  animation: hero-portal-ring 32s linear infinite reverse;
+}
+.hero-portal__glyph {
+  position: absolute;
+  right: calc(8% + 2rem);
+  top: 50%;
+  width: 3.25rem;
+  height: 3.25rem;
+  color: var(--portal-accent);
+  transform: translateY(-50%);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--portal-accent) 35%, transparent));
+  opacity: 0.76;
+  animation: hero-portal-float 5.5s ease-in-out infinite;
+}
+.hero-portal__glyph svg {
+  width: 100%;
+  height: 100%;
+}
+.hero-portal__data {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.47rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--portal-accent) 80%, white);
+  opacity: 0.58;
+}
+.hero-portal--motion .hero-portal__overlay {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.7) 48%, rgba(0, 0, 0, 0.12) 100%);
+}
+.hero-portal--motion:hover .hero-portal__glyph {
+  opacity: 1;
+}
+.hero-portal--motion:hover .hero-portal__grid {
+  opacity: 0.32;
+}
+.hero-portal--motion .hero-portal__icon {
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 8%, rgba(255, 255, 255, 0.04));
+  border-color: color-mix(in srgb, var(--portal-accent) 32%, transparent);
+}
+.hero-portal--motion:hover .hero-portal__icon {
+  background: color-mix(in srgb, var(--portal-accent) 14%, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--portal-accent) 50%, transparent);
+}
+@keyframes hero-portal-grid {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 24px, 24px 0; }
+}
+@keyframes hero-portal-ring {
+  from { transform: translateY(-50%) rotate(0deg); }
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+@keyframes hero-portal-float {
+  0%, 100% { transform: translateY(-50%) scale(0.98); }
+  50% { transform: translateY(calc(-50% - 2px)) scale(1.01); }
+}
 .hero-portal__overlay {
   position: absolute;
   inset: 0;
@@ -169,6 +301,15 @@
 }
 .hero-portals.hero__fade {
   animation-delay: 0.65s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-portal__grid,
+  .hero-portal__ring,
+  .hero-portal__glyph,
+  .hero-portal__motion::before,
+  .hero-portal__motion::after {
+    animation: none;
+  }
 }
 
 /* Hero search */

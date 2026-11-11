@@ -1265,19 +1265,57 @@ function nw_fuel_service_icon_svg(string $icon): string
 }
 
 /**
+ * Render one of the locally bundled Lucide SVG icons with theme-controlled
+ * presentation attributes. The filename map keeps filesystem access fixed.
+ */
+function nw_fuel_lucide_icon_svg(string $icon, string $attrs): string
+{
+    static $icon_markup = [];
+
+    $files = [
+        'fan' => 'lucide-fan.svg',
+        'cog' => 'lucide-cog.svg',
+        'fuel' => 'lucide-fuel.svg',
+    ];
+
+    if (! isset($files[$icon])) {
+        return '';
+    }
+
+    if (! array_key_exists($icon, $icon_markup)) {
+        $path = NW_FUEL_DIR . '/assets/icons/' . $files[$icon];
+        $svg = is_readable($path) ? file_get_contents($path) : false;
+        $icon_markup[$icon] = '';
+
+        if (is_string($svg) && preg_match('/<svg\b[^>]*>(.*)<\/svg>/s', $svg, $matches)) {
+            $icon_markup[$icon] = trim($matches[1]);
+        }
+    }
+
+    if ($icon_markup[$icon] === '') {
+        return '';
+    }
+
+    return '<svg ' . $attrs . '>' . $icon_markup[$icon] . '</svg>';
+}
+
+/**
  * Category icon SVG for hero/catalog UI.
  */
 function nw_fuel_product_category_icon_svg(string $category): string
 {
     $attrs = 'xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    $fuel_icon = nw_fuel_lucide_icon_svg('fuel', $attrs);
+    $turbo_icon = nw_fuel_lucide_icon_svg('fan', $attrs);
+    $engine_icon = nw_fuel_lucide_icon_svg('cog', $attrs);
 
     return match ($category) {
         'all' => '<svg ' . $attrs . '><path d="M8.5 3.5 12 2l3.5 1.5L19 6v5.5l-1.5 3.5L12 21l-5.5-6L5 11.5V6l3.5-2.5z"/><path d="M12 2v6.5M5 6l7 3.5M19 6l-7 3.5M12 21V14.5"/></svg>',
         'Injectors' => '<svg ' . $attrs . '><path d="M9 3h6v4l-1 2v7l-2 5-2-5V9L9 7V3z"/><path d="M8 6h8M10 10h4M10 15h4"/></svg>',
         'Injection Pumps' => '<svg ' . $attrs . '><path d="M5 8h11a3 3 0 0 1 3 3v5H8a3 3 0 0 1-3-3V8z"/><path d="M8 8V5h6v3M19 12h2M9 12h5M7 19h3M16 19h3"/><circle cx="8.5" cy="12" r="1"/></svg>',
-        'Pumps & Injectors' => '<svg ' . $attrs . '><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><path d="M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4l1.4-1.4M17 7l1.4-1.4"/></svg>',
-        'Turbos', 'Turbochargers' => '<svg ' . $attrs . '><path d="M12 4a8 8 0 1 0 8 8h-5"/><path d="M12 8a4 4 0 1 0 4 4h5"/><circle cx="12" cy="12" r="1.5"/><path d="M17 8h4v4"/></svg>',
-        'Component Parts', 'Engine Parts' => '<svg ' . $attrs . '><path d="M5 9h3l2-3h5l2 3h2v8H5V9z"/><path d="M8 17v2M16 17v2M8 12h2M14 12h2M12 6V3M9 3h6"/></svg>',
+        'Pumps & Injectors' => $fuel_icon,
+        'Turbos', 'Turbochargers' => $turbo_icon,
+        'Component Parts', 'Engine Parts' => $engine_icon,
         'Fuel System Components' => '<svg ' . $attrs . '><circle cx="6" cy="7" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="17" r="2.5"/><path d="M8.5 7h7M7.5 9l3.2 5.8M16.5 9l-3.2 5.8"/></svg>',
         'Fuel Additives' => '<svg ' . $attrs . '><path d="M12 3c-3 4.2-5.5 7-5.5 10.2a5.5 5.5 0 0 0 11 0C17.5 10 15 7.2 12 3z"/><path d="M9.5 14.5c.5 1.2 1.4 1.8 2.7 1.8"/></svg>',
         'Filters' => '<svg ' . $attrs . '><path d="M6 4h12l1 3-2 2v9l-2 2H9l-2-2V9L5 7l1-3z"/><path d="M7 9h10M7 13h10M7 17h10"/></svg>',
