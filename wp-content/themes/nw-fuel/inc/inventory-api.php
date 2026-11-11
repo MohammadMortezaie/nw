@@ -944,13 +944,14 @@ function nw_fuel_failed_inventory_files(): array
 function nw_fuel_inventory_download_url(string $filename): string
 {
     $filename = sanitize_file_name($filename);
-    return wp_nonce_url(
-        add_query_arg([
-            'action' => 'nw_fuel_download_inventory_file',
-            'file'   => $filename,
-        ], admin_url('admin-post.php')),
-        'nw_fuel_download_inventory_file_' . $filename
-    );
+    // Return a raw URL so it also works in the plain-text inventory alert email.
+    // wp_nonce_url() HTML-encodes query separators as &amp;, which email clients
+    // can preserve literally and turn `file` into an `amp;file` query parameter.
+    return add_query_arg([
+        'action'   => 'nw_fuel_download_inventory_file',
+        'file'     => $filename,
+        '_wpnonce' => wp_create_nonce('nw_fuel_download_inventory_file_' . $filename),
+    ], admin_url('admin-post.php'));
 }
 
 /**
@@ -962,7 +963,14 @@ function nw_fuel_handle_download_inventory_file(): void
         wp_die(esc_html__('Unauthorized', 'nw-fuel'), '', ['response' => 403]);
     }
 
-    $filename = sanitize_file_name((string) wp_unslash($_GET['file'] ?? ''));
+    // Support links from older plain-text alerts where wp_nonce_url() left the
+    // HTML entity prefix in the query parameter names.
+    $file_param = $_GET['file'] ?? $_GET['amp;file'] ?? '';
+    if (! isset($_REQUEST['_wpnonce']) && isset($_GET['amp;_wpnonce'])) {
+        $_REQUEST['_wpnonce'] = $_GET['amp;_wpnonce'];
+    }
+
+    $filename = sanitize_file_name((string) wp_unslash($file_param));
     $allowed  = $filename === NW_FUEL_INVENTORY_LATEST_FILE
         || preg_match('/^error-[A-Za-z0-9._-]+\.(?:csv|xlsx|xls)$/', $filename) === 1;
     if (! $allowed || basename($filename) !== $filename) {
