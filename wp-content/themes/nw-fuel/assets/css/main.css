@@ -1336,17 +1336,23 @@ h1, h2, h3, h4, p { margin: 0; }
     border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
   /*
-   * Mobile browsers can restart off-screen entrance animations when the hero
-   * is composited again, leaving individual headings, paragraphs, or the
-   * category rail on the opacity: 0 keyframe. Keep hero content permanently
-   * visible on small screens; decorative motion remains unaffected.
+   * Use backwards-only fill on mobile: the entrance stays smooth during its
+   * delay, then releases every element to the permanently visible base state.
+   * This avoids the off-screen compositing bug caused by a persistent fill.
    */
   .hero__fade {
     opacity: 1;
     transform: none;
-    animation: none;
-    -webkit-animation: none;
+    animation: heroTextFadeMobile 0.55s ease-out backwards;
   }
+  .hero__eyebrow.hero__fade { animation-delay: 0.05s; }
+  .hero__title.hero__fade { animation-delay: 0.12s; }
+  .hero__desc.hero__fade { animation-delay: 0.2s; }
+  .hero-portals.hero__fade { animation-delay: 0.28s; }
+  .hero-search.hero__fade { animation-delay: 0.36s; }
+  .hero__actions.hero__fade { animation-delay: 0.44s; }
+  .hero__meta.hero__fade { animation-delay: 0.5s; }
+  .hero-cats.hero__fade { animation-delay: 0.56s; }
 
   /* Page & service heroes */
   .page-hero { padding-top: calc(2.5rem + env(safe-area-inset-top, 0)); }
@@ -1400,6 +1406,12 @@ h1, h2, h3, h4, p { margin: 0; }
 
   /* Gallery thumbs scroll row */
   .gallery__thumbs { flex-wrap: nowrap; }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .hero__fade {
+    animation: none;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
