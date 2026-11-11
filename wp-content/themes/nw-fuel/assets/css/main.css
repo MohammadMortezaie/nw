@@ -819,8 +819,9 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 
 .hero__fade {
-  opacity: 0;
-  animation: heroTextFade 1s ease-out forwards;
+  opacity: 1;
+  transform: none;
+  animation: heroTextFade 1s ease-out both;
 }
 .hero__eyebrow.hero__fade { animation-delay: 0.15s; }
 .hero__title.hero__fade { animation-delay: 0.35s; }
