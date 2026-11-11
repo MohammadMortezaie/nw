@@ -1188,6 +1188,8 @@ body.page-products {
   .product-gallery {
     display: flex;
     gap: 0.75rem;
+    position: sticky;
+    top: calc(6rem + 1.5rem);
   }
   .product-gallery__main {
     order: 2;
