@@ -1348,8 +1348,8 @@ h1, h2, h3, h4, p { margin: 0; }
   .hero__eyebrow.hero__fade { animation-delay: 0.05s; }
   .hero__title.hero__fade { animation-delay: 0.12s; }
   .hero__desc.hero__fade { animation-delay: 0.2s; }
-  .hero-portals.hero__fade { animation-delay: 0.28s; }
-  .hero-search.hero__fade { animation-delay: 0.36s; }
+  .page-home .hero-search.hero__fade { animation-delay: 0.28s; }
+  .page-home .hero-portals.hero__fade { animation-delay: 0.36s; }
   .hero__actions.hero__fade { animation-delay: 0.44s; }
   .hero__meta.hero__fade { animation-delay: 0.5s; }
   .hero-cats.hero__fade { animation-delay: 0.56s; }
