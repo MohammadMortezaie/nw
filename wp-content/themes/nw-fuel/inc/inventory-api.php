@@ -939,18 +939,21 @@ function nw_fuel_failed_inventory_files(): array
 }
 
 /**
- * Short-lived, authenticated download URL. Files themselves remain private.
+ * Signed download URL that remains valid for the failed-file retention period.
+ * Files themselves remain private and downloads still require an administrator.
  */
 function nw_fuel_inventory_download_url(string $filename): string
 {
-    $filename = sanitize_file_name($filename);
+    $filename  = sanitize_file_name($filename);
+    $expires   = time() + (NW_FUEL_INVENTORY_ERROR_RETENTION_DAYS * DAY_IN_SECONDS);
+    $signature = hash_hmac('sha256', $filename . '|' . $expires, wp_salt('auth'));
+
     // Return a raw URL so it also works in the plain-text inventory alert email.
-    // wp_nonce_url() HTML-encodes query separators as &amp;, which email clients
-    // can preserve literally and turn `file` into an `amp;file` query parameter.
     return add_query_arg([
-        'action'   => 'nw_fuel_download_inventory_file',
-        'file'     => $filename,
-        '_wpnonce' => wp_create_nonce('nw_fuel_download_inventory_file_' . $filename),
+        'action'    => 'nw_fuel_download_inventory_file',
+        'file'      => $filename,
+        'expires'   => $expires,
+        'signature' => $signature,
     ], admin_url('admin-post.php'));
 }
 
@@ -966,17 +969,32 @@ function nw_fuel_handle_download_inventory_file(): void
     // Support links from older plain-text alerts where wp_nonce_url() left the
     // HTML entity prefix in the query parameter names.
     $file_param = $_GET['file'] ?? $_GET['amp;file'] ?? '';
-    if (! isset($_REQUEST['_wpnonce']) && isset($_GET['amp;_wpnonce'])) {
-        $_REQUEST['_wpnonce'] = $_GET['amp;_wpnonce'];
-    }
-
-    $filename = sanitize_file_name((string) wp_unslash($file_param));
-    $allowed  = $filename === NW_FUEL_INVENTORY_LATEST_FILE
+    $filename   = sanitize_file_name((string) wp_unslash($file_param));
+    $allowed    = $filename === NW_FUEL_INVENTORY_LATEST_FILE
         || preg_match('/^error-[A-Za-z0-9._-]+\.(?:csv|xlsx|xls)$/', $filename) === 1;
     if (! $allowed || basename($filename) !== $filename) {
         wp_die(esc_html__('Invalid inventory filename.', 'nw-fuel'), '', ['response' => 400]);
     }
-    check_admin_referer('nw_fuel_download_inventory_file_' . $filename);
+
+    $expires       = absint($_GET['expires'] ?? 0);
+    $signature     = sanitize_text_field((string) wp_unslash($_GET['signature'] ?? ''));
+    $expected      = hash_hmac('sha256', $filename . '|' . $expires, wp_salt('auth'));
+    $signed_valid  = $expires >= time() && $signature !== '' && hash_equals($expected, $signature);
+    $nonce_param   = $_REQUEST['_wpnonce'] ?? $_GET['amp;_wpnonce'] ?? '';
+    $nonce         = sanitize_text_field((string) wp_unslash($nonce_param));
+    $nonce_valid   = $nonce !== '' && wp_verify_nonce($nonce, 'nw_fuel_download_inventory_file_' . $filename) !== false;
+
+    if (! $signed_valid && ! $nonce_valid) {
+        $fresh_url = nw_fuel_inventory_download_url($filename);
+        wp_die(
+            wp_kses_post(sprintf(
+                __('This download link has expired. <a href="%s">Create a fresh download</a>.', 'nw-fuel'),
+                esc_url($fresh_url)
+            )),
+            esc_html__('Expired inventory download link', 'nw-fuel'),
+            ['response' => 403]
+        );
+    }
 
     $dir = nw_fuel_inventory_upload_dir();
     if (is_wp_error($dir)) {
