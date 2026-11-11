@@ -10,7 +10,6 @@ defined('ABSPATH') || exit;
 get_header();
 
 $images              = nw_fuel_images();
-$business            = nw_fuel_business();
 $product_categories  = nw_fuel_product_categories();
 $brands              = nw_fuel_attribute_terms('pa_brand');
 $vehicle_types       = nw_fuel_attribute_terms('pa_vehicle-type');
@@ -106,12 +105,11 @@ $hero_quick_links = [
       <?php endforeach; ?>
     </div>
     <?php
-    get_template_part('template-parts/hero-search-form', null, ['hero_search_value' => $initial_search]);
+    get_template_part('template-parts/hero-search-form', null, [
+        'hero_search_value' => $initial_search,
+        'compact'           => true,
+    ]);
     ?>
-    <div class="hero__actions hero__fade">
-      <a href="<?php echo esc_url(nw_fuel_page_url('contact')); ?>" class="btn btn--primary btn--lg"><?php esc_html_e('Request a Quote', 'nw-fuel'); ?></a>
-      <a href="<?php echo esc_url(nw_fuel_phone_href($business['phone'] ?? '')); ?>" class="btn btn--outline-white btn--lg"><?php echo esc_html($business['phone'] ?? ''); ?></a>
-    </div>
   </div>
 </section>
 

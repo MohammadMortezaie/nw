@@ -11,7 +11,6 @@ html:has(body.page-products),
 body.page-products {
   overflow-x: visible;
 }
-
 /* Header */
 .page-products .site-header {
   background: var(--home-black);
@@ -224,8 +223,8 @@ body.page-products {
 .hero--products .hero__content {
   align-items: stretch;
   max-width: var(--container);
-  padding-top: clamp(1.75rem, 4vw, 2.75rem);
-  padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
+  padding-top: clamp(1.5rem, 3vw, 2.25rem);
+  padding-bottom: clamp(1rem, 2vw, 1.5rem);
 }
 .hero--products .hero__title {
   margin-bottom: 1rem;
@@ -570,6 +569,41 @@ body.page-products {
   transition: background 0.2s;
 }
 .hero-search__btn:hover { background: #262626; }
+.hero--products .hero-search {
+  margin-bottom: 0;
+}
+.page-products .hero-search--compact .hero-search__bar {
+  min-height: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+.page-products .hero-search--compact input {
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+}
+.page-products .hero-search--compact .hero-search__ghost {
+  left: 1rem;
+  font-size: 0.875rem;
+}
+.page-products .hero-search--compact .hero-search__btn {
+  display: grid;
+  width: 3rem;
+  min-width: 3rem;
+  padding: 0;
+  place-items: center;
+  border-left: 1px solid #e5e5e5;
+  background: transparent;
+  color: var(--home-black);
+}
+.page-products .hero-search--compact .hero-search__btn:hover,
+.page-products .hero-search--compact .hero-search__btn:focus-visible {
+  background: #f0f0f0;
+}
+.page-products .hero-search__btn-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
 
 /* Stats strip */
 .catalog-stats {
@@ -1632,9 +1666,44 @@ body.page-products {
 }
 
 @media (max-width: 767px) {
-  .hero-search__bar { flex-direction: column; }
-  .hero-search__field { width: 100%; }
-  .hero-search__btn { padding: 0.875rem; width: 100%; }
-  .hero--products .hero__actions { flex-direction: column; }
-  .hero--products .hero__actions .btn { width: 100%; }
+  .hero--products .hero__content {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+  .hero--products .hero__eyebrow {
+    margin-bottom: 0.375rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+  }
+  .hero--products .hero__title {
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.625rem, 7vw, 2rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+  .hero--products .hero__desc {
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .page-products .hero-search--compact .hero-search__bar {
+    flex-direction: row;
+    min-height: 2.75rem;
+  }
+  .page-products .hero-search--compact .hero-search__field {
+    width: auto;
+  }
+  .page-products .hero-search--compact input {
+    min-height: 2.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+  .page-products .hero-search--compact .hero-search__ghost {
+    left: 0.875rem;
+    font-size: 0.8125rem;
+  }
+  .page-products .hero-search--compact .hero-search__btn {
+    width: 2.75rem;
+    min-width: 2.75rem;
+  }
 }
