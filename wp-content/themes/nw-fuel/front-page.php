@@ -42,12 +42,6 @@ $newsletter_feedback = nw_fuel_form_feedback('newsletter');
     <p class="hero__eyebrow hero__fade"><?php echo esc_html($home['hero_eyebrow']); ?></p>
     <h1 class="hero__title hero__fade"><?php echo esc_html($home['hero_title']); ?></h1>
     <p class="hero__desc hero__fade"><?php echo esc_html($home['hero_desc']); ?></p>
-    <?php
-    get_template_part('template-parts/hero-search-form', null, [
-        'hero_search_value' => '',
-        'compact'           => true,
-    ]);
-    ?>
     <div class="hero-portals hero__fade">
       <a href="<?php echo esc_url(nw_fuel_products_url()); ?>" class="hero-portal hero-portal--motion hero-portal--parts">
         <span class="hero-portal__motion" aria-hidden="true">
@@ -86,6 +80,12 @@ $newsletter_feedback = nw_fuel_form_feedback('newsletter');
         </span>
       </a>
     </div>
+    <?php
+    get_template_part('template-parts/hero-search-form', null, [
+        'hero_search_value' => '',
+        'compact'           => true,
+    ]);
+    ?>
     <div class="hero__actions hero__fade">
       <a href="<?php echo esc_url(nw_fuel_page_url('contact')); ?>" class="btn btn--primary btn--lg"><?php echo esc_html($home['hero_cta_primary']); ?></a>
       <a href="<?php echo esc_url(nw_fuel_phone_href($business['phone'] ?? '')); ?>" class="btn btn--outline-white btn--lg" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: phone */ __('Call us at %s', 'nw-fuel'), $business['phone'] ?? '')); ?>"><?php echo esc_html($home['hero_cta_secondary']); ?></a>

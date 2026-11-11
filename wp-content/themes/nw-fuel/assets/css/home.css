@@ -300,7 +300,7 @@
   transform: translateX(3px);
 }
 .hero-portals.hero__fade {
-  animation-delay: 0.75s;
+  animation-delay: 0.65s;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-portal__grid,
@@ -417,7 +417,7 @@
 }
 .hero-search__btn:hover { background: #262626; }
 .hero-search--compact.hero__fade {
-  animation-delay: 0.65s;
+  animation-delay: 0.75s;
 }
 .hero-search--compact .hero-search__bar {
   min-height: 3rem;
