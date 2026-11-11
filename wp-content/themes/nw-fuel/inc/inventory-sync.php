@@ -255,6 +255,18 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
 
     $parsed = nw_fuel_parse_inventory_csv_file($path);
     if (is_wp_error($parsed)) {
+        $failed_file = '';
+        if (function_exists('nw_fuel_store_failed_inventory_path')) {
+            $csv_meta = function_exists('nw_fuel_get_inventory_csv_meta') ? nw_fuel_get_inventory_csv_meta() : [];
+            $stored_failure = nw_fuel_store_failed_inventory_path(
+                $path,
+                (string) ($csv_meta['source_name'] ?? basename($path)),
+                $parsed->get_error_message()
+            );
+            if (! is_wp_error($stored_failure)) {
+                $failed_file = (string) ($stored_failure['filename'] ?? '');
+            }
+        }
         $result = [
             'ok'      => false,
             'message' => $parsed->get_error_message(),
@@ -262,6 +274,7 @@ function nw_fuel_run_inventory_sync(array $opts = []): array
             'started' => $started,
             'finished'=> gmdate('c'),
             'import_id'=> $import_id,
+            'failed_file'=> $failed_file,
         ];
         update_option('nw_fuel_inventory_sync_last', $result, false);
         do_action('nw_fuel_inventory_sync_complete', $result);
@@ -468,6 +481,29 @@ function nw_fuel_finalize_inventory_sync(array $state, bool $ok, string $message
     delete_option('nw_fuel_inventory_csv_pending_sync');
     delete_option(NW_FUEL_INVENTORY_SYNC_STATE);
 
+    $failed_file = '';
+    if ((! $ok || (int) ($state['errors'] ?? 0) > 0)
+        && function_exists('nw_fuel_store_failed_inventory_path')) {
+        $csv_path = (string) ($state['csv_path'] ?? '');
+        $csv_meta = function_exists('nw_fuel_get_inventory_csv_meta') ? nw_fuel_get_inventory_csv_meta() : [];
+        $failure_reason = $message;
+        if ((int) ($state['errors'] ?? 0) > 0) {
+            $failure_reason .= sprintf(' %d row error(s).', (int) $state['errors']);
+            $error_log = is_array($state['log'] ?? null) ? $state['log'] : [];
+            if ($error_log !== []) {
+                $failure_reason .= ' ' . implode(' | ', array_slice(array_map('strval', $error_log), 0, 3));
+            }
+        }
+        $stored_failure = nw_fuel_store_failed_inventory_path(
+            $csv_path,
+            (string) ($csv_meta['source_name'] ?? basename($csv_path)),
+            $failure_reason
+        );
+        if (! is_wp_error($stored_failure)) {
+            $failed_file = (string) ($stored_failure['filename'] ?? '');
+        }
+    }
+
     $result = [
         'ok'        => $ok,
         'running'   => false,
@@ -483,6 +519,7 @@ function nw_fuel_finalize_inventory_sync(array $state, bool $ok, string $message
         'log'       => is_array($state['log'] ?? null) ? $state['log'] : [],
         'started'   => (string) ($state['started'] ?? ''),
         'import_id' => (string) ($state['import_id'] ?? ''),
+        'failed_file'=> $failed_file,
         'finished'  => gmdate('c'),
     ];
 

@@ -64,6 +64,8 @@ No Elementor, Bootstrap, Tailwind, or page builders.
 - Each inventory sync compares Retail, Wholesale, Trade, and Special 1–3 prices with the currently approved product values.
 - Decreases at or above the configurable threshold are held; the current price stays live until an administrator approves the proposal.
 - All held products from one import are combined into one alert email. Import failures also generate one alert; invalid API-key traffic is excluded.
+- Invalid or failed inventory files are retained beside `latest.csv` with an `error-...` filename and automatically removed after seven days.
+- The Inventory updates admin screen exposes nonce-protected download URLs for `latest.csv` and retained error files; absolute server paths are never displayed.
 - Pending changes never auto-approve. Rejected identical proposals remain held without creating the same review and email every night.
 - Administrators can approve or reject several products together under **Products → Price Review** and inspect the retained price history chart.
 

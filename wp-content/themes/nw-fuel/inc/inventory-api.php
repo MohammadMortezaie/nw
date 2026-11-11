@@ -26,6 +26,8 @@ const NW_FUEL_INVENTORY_RATE_PER_MIN   = 10;
 const NW_FUEL_INVENTORY_UPLOADS_PER_NIGHT = 3;
 const NW_FUEL_INVENTORY_QUOTA_OPTION   = 'nw_fuel_inventory_nightly_upload_quota';
 const NW_FUEL_INVENTORY_LOG_RETENTION_DAYS = 7;
+const NW_FUEL_INVENTORY_ERROR_RETENTION_DAYS = 7;
+const NW_FUEL_INVENTORY_FAILED_OPTION = 'nw_fuel_inventory_failed_files';
 
 add_action('rest_api_init', 'nw_fuel_register_inventory_rest_routes');
 add_action('admin_menu', 'nw_fuel_register_inventory_api_page');
@@ -34,6 +36,7 @@ add_action('admin_post_nw_fuel_revoke_inventory_api_key', 'nw_fuel_handle_revoke
 add_action('admin_post_nw_fuel_save_inventory_mode', 'nw_fuel_handle_save_inventory_mode');
 add_action('admin_post_nw_fuel_upload_inventory_file', 'nw_fuel_handle_upload_inventory_file');
 add_action('admin_post_nw_fuel_view_inventory_api_log', 'nw_fuel_handle_view_inventory_api_log');
+add_action('admin_post_nw_fuel_download_inventory_file', 'nw_fuel_handle_download_inventory_file');
 add_action('init', 'nw_fuel_schedule_inventory_api_log_cleanup');
 add_action('nw_fuel_inventory_api_log_cleanup', 'nw_fuel_prune_inventory_api_logs_now');
 add_action('switch_theme', 'nw_fuel_unschedule_inventory_api_log_cleanup');
@@ -183,6 +186,7 @@ function nw_fuel_prune_inventory_api_logs_now(): void
         $dir,
         new DateTimeImmutable('now', nw_fuel_inventory_api_log_timezone())
     );
+    nw_fuel_prune_failed_inventory_files();
 }
 
 /**
@@ -227,6 +231,9 @@ function nw_fuel_log_inventory_api_request($response, WP_REST_Server $server, WP
         $data    = $response->get_error_data($code);
         if (is_array($data) && isset($data['status'])) {
             $status = (int) $data['status'];
+        }
+        if (is_array($data) && isset($data['failed_file'])) {
+            $details['failed_file'] = sanitize_file_name((string) $data['failed_file']);
         }
     } else {
         $rest_response = rest_ensure_response($response);
@@ -507,7 +514,7 @@ function nw_fuel_rest_upload_inventory_csv(WP_REST_Request $request)
     $csv_bytes = nw_fuel_normalize_inventory_csv_bytes($csv_bytes);
     $validation = nw_fuel_validate_inventory_csv($csv_bytes);
     if (is_wp_error($validation)) {
-        return $validation;
+        return nw_fuel_retain_failed_inventory_error($validation, $csv_bytes, $filename);
     }
 
     $quota = nw_fuel_inventory_nightly_upload_quota_or_error();
@@ -517,7 +524,7 @@ function nw_fuel_rest_upload_inventory_csv(WP_REST_Request $request)
 
     $saved = nw_fuel_store_inventory_csv($csv_bytes, $filename);
     if (is_wp_error($saved)) {
-        return $saved;
+        return nw_fuel_retain_failed_inventory_error($saved, $csv_bytes, $filename);
     }
 
     nw_fuel_inventory_increment_nightly_upload_quota();
@@ -534,8 +541,8 @@ function nw_fuel_rest_upload_inventory_csv(WP_REST_Request $request)
         'message'      => 'CSV stored successfully. Nightly sync will apply it at 1:00 AM America/Los_Angeles.',
         'rows'         => $validation['rows'],
         'headers'      => $validation['headers'],
-        'latest_path'  => $saved['latest_path'],
-        'backup_path'  => $saved['backup_path'],
+        'latest_file'  => NW_FUEL_INVENTORY_LATEST_FILE,
+        'backup_file'  => basename((string) $saved['backup_path']),
         'bytes'        => $saved['bytes'],
         'received_at'  => $saved['received_at'],
         'source_name'  => $filename,
@@ -552,6 +559,7 @@ function nw_fuel_rest_inventory_status(WP_REST_Request $request): WP_REST_Respon
 {
     unset($request);
     $meta = nw_fuel_get_inventory_csv_meta();
+    unset($meta['latest_path'], $meta['backup_path']);
 
     return new WP_REST_Response([
         'ok'     => true,
@@ -790,6 +798,201 @@ function nw_fuel_inventory_upload_dir(): string|WP_Error
 }
 
 /**
+ * Keep an uploaded file that could not be accepted, beside latest.csv.
+ * Direct web access remains denied; administrators download it through a
+ * nonce-protected action. Failed files are removed after seven days.
+ *
+ * @return array{filename:string,path:string,bytes:int,received_at:string,reason:string,source_name:string}|WP_Error
+ */
+function nw_fuel_store_failed_inventory_file(string $bytes, string $source_name, string $reason): array|WP_Error
+{
+    if ($bytes === '') {
+        return new WP_Error('nw_fuel_failed_file_empty', __('The failed upload did not contain file data.', 'nw-fuel'));
+    }
+
+    $dir = nw_fuel_inventory_upload_dir();
+    if (is_wp_error($dir)) {
+        return $dir;
+    }
+
+    $safe_source = sanitize_file_name($source_name);
+    if ($safe_source === '') {
+        $safe_source = 'upload.csv';
+    }
+    $extension = strtolower((string) pathinfo($safe_source, PATHINFO_EXTENSION));
+    if (! in_array($extension, ['csv', 'xlsx', 'xls'], true)) {
+        $extension = 'csv';
+    }
+    $base = sanitize_file_name((string) pathinfo($safe_source, PATHINFO_FILENAME));
+    $base = $base !== '' ? $base : 'upload';
+    $filename = sprintf(
+        'error-%s-%s-%s.%s',
+        gmdate('Ymd-His'),
+        substr(wp_generate_uuid4(), 0, 8),
+        $base,
+        $extension
+    );
+    $path = trailingslashit($dir) . $filename;
+    if (file_put_contents($path, $bytes, LOCK_EX) === false) {
+        return new WP_Error('nw_fuel_failed_file_write', __('Unable to retain the failed inventory file.', 'nw-fuel'));
+    }
+    @chmod($path, 0600);
+
+    $record = [
+        'filename'    => $filename,
+        'path'        => $path,
+        'bytes'       => strlen($bytes),
+        'received_at' => gmdate('c'),
+        'reason'      => sanitize_text_field($reason),
+        'source_name' => $safe_source,
+    ];
+    $records = get_option(NW_FUEL_INVENTORY_FAILED_OPTION, []);
+    $records = is_array($records) ? $records : [];
+    $records[$filename] = $record;
+    update_option(NW_FUEL_INVENTORY_FAILED_OPTION, $records, false);
+    nw_fuel_prune_failed_inventory_files();
+
+    return $record;
+}
+
+/**
+ * Retain a readable server-side CSV as a failed-file copy.
+ *
+ * @return array<string,mixed>|WP_Error
+ */
+function nw_fuel_store_failed_inventory_path(string $path, string $source_name, string $reason): array|WP_Error
+{
+    if ($path === '' || ! is_readable($path)) {
+        return new WP_Error('nw_fuel_failed_path_read', __('Unable to read the failed inventory file.', 'nw-fuel'));
+    }
+    $bytes = file_get_contents($path);
+    if (! is_string($bytes)) {
+        return new WP_Error('nw_fuel_failed_path_read', __('Unable to read the failed inventory file.', 'nw-fuel'));
+    }
+
+    return nw_fuel_store_failed_inventory_file($bytes, $source_name, $reason);
+}
+
+/**
+ * Retain invalid bytes and attach the safe filename to a REST/admin error.
+ */
+function nw_fuel_retain_failed_inventory_error(WP_Error $error, string $bytes, string $source_name): WP_Error
+{
+    $stored = nw_fuel_store_failed_inventory_file($bytes, $source_name, $error->get_error_message());
+    if (! is_wp_error($stored)) {
+        $code = (string) $error->get_error_code();
+        $data = $error->get_error_data($code);
+        $data = is_array($data) ? $data : [];
+        $data['failed_file'] = $stored['filename'];
+        $error->add_data($data, $code);
+    }
+
+    return $error;
+}
+
+/**
+ * Delete failed inventory files older than the seven-day retention window.
+ */
+function nw_fuel_prune_failed_inventory_files(): void
+{
+    $dir = nw_fuel_inventory_upload_dir();
+    if (is_wp_error($dir)) {
+        return;
+    }
+
+    $cutoff  = time() - (NW_FUEL_INVENTORY_ERROR_RETENTION_DAYS * DAY_IN_SECONDS);
+    $records = get_option(NW_FUEL_INVENTORY_FAILED_OPTION, []);
+    $records = is_array($records) ? $records : [];
+    $files   = glob(trailingslashit($dir) . 'error-*');
+    foreach (is_array($files) ? $files : [] as $path) {
+        if (! is_file($path)) {
+            continue;
+        }
+        $mtime = filemtime($path);
+        if ($mtime !== false && $mtime < $cutoff) {
+            wp_delete_file($path);
+            unset($records[basename($path)]);
+        }
+    }
+
+    foreach (array_keys($records) as $filename) {
+        if (! is_file(trailingslashit($dir) . basename((string) $filename))) {
+            unset($records[$filename]);
+        }
+    }
+    update_option(NW_FUEL_INVENTORY_FAILED_OPTION, $records, false);
+}
+
+/**
+ * Failed files still inside the retention window, newest first.
+ *
+ * @return list<array<string,mixed>>
+ */
+function nw_fuel_failed_inventory_files(): array
+{
+    nw_fuel_prune_failed_inventory_files();
+    $records = get_option(NW_FUEL_INVENTORY_FAILED_OPTION, []);
+    $records = is_array($records) ? array_values($records) : [];
+    usort($records, static fn (array $a, array $b): int => strcmp((string) ($b['received_at'] ?? ''), (string) ($a['received_at'] ?? '')));
+
+    return $records;
+}
+
+/**
+ * Short-lived, authenticated download URL. Files themselves remain private.
+ */
+function nw_fuel_inventory_download_url(string $filename): string
+{
+    $filename = sanitize_file_name($filename);
+    return wp_nonce_url(
+        add_query_arg([
+            'action' => 'nw_fuel_download_inventory_file',
+            'file'   => $filename,
+        ], admin_url('admin-post.php')),
+        'nw_fuel_download_inventory_file_' . $filename
+    );
+}
+
+/**
+ * Download latest.csv or a retained failed upload without exposing server paths.
+ */
+function nw_fuel_handle_download_inventory_file(): void
+{
+    if (! current_user_can('manage_options')) {
+        wp_die(esc_html__('Unauthorized', 'nw-fuel'), '', ['response' => 403]);
+    }
+
+    $filename = sanitize_file_name((string) wp_unslash($_GET['file'] ?? ''));
+    $allowed  = $filename === NW_FUEL_INVENTORY_LATEST_FILE
+        || preg_match('/^error-[A-Za-z0-9._-]+\.(?:csv|xlsx|xls)$/', $filename) === 1;
+    if (! $allowed || basename($filename) !== $filename) {
+        wp_die(esc_html__('Invalid inventory filename.', 'nw-fuel'), '', ['response' => 400]);
+    }
+    check_admin_referer('nw_fuel_download_inventory_file_' . $filename);
+
+    $dir = nw_fuel_inventory_upload_dir();
+    if (is_wp_error($dir)) {
+        wp_die(esc_html($dir->get_error_message()), '', ['response' => 500]);
+    }
+    $path = trailingslashit($dir) . $filename;
+    if (! is_file($path) || ! is_readable($path)) {
+        wp_die(esc_html__('Inventory file not found.', 'nw-fuel'), '', ['response' => 404]);
+    }
+
+    $extension = strtolower((string) pathinfo($filename, PATHINFO_EXTENSION));
+    $type = $extension === 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : ($extension === 'xls' ? 'application/vnd.ms-excel' : 'text/csv; charset=utf-8');
+    nocache_headers();
+    header('Content-Type: ' . $type);
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Length: ' . (string) filesize($path));
+    header('X-Content-Type-Options: nosniff');
+    readfile($path);
+    exit;
+}
+
+/**
  * Store CSV as latest.csv + timestamped backup.
  *
  * @return array<string, mixed>|WP_Error
@@ -904,6 +1107,7 @@ function nw_fuel_render_inventory_api_page(): void
     $meta     = nw_fuel_get_inventory_csv_meta();
     nw_fuel_prune_inventory_api_logs_now();
     $api_logs = nw_fuel_inventory_api_log_files();
+    $failed_files = nw_fuel_failed_inventory_files();
     $mode     = nw_fuel_inventory_update_mode();
     $flash    = get_transient('nw_fuel_inventory_admin_flash');
     if (is_array($flash)) {
@@ -1049,7 +1253,12 @@ function nw_fuel_render_inventory_api_page(): void
         <h2><?php esc_html_e('Latest stored CSV', 'nw-fuel'); ?></h2>
         <?php if (! empty($meta['exists'])) : ?>
             <ul>
-                <li><?php esc_html_e('Path:', 'nw-fuel'); ?> <code><?php echo esc_html((string) ($meta['latest_path'] ?? '')); ?></code></li>
+                <?php $latest_url = nw_fuel_inventory_download_url(NW_FUEL_INVENTORY_LATEST_FILE); ?>
+                <li>
+                    <label for="nw-latest-csv-url"><?php esc_html_e('Download URL:', 'nw-fuel'); ?></label><br>
+                    <input id="nw-latest-csv-url" type="url" class="large-text code" readonly value="<?php echo esc_attr($latest_url); ?>" onclick="this.select()">
+                    <a class="button button-small" href="<?php echo esc_url($latest_url); ?>"><?php esc_html_e('Download latest.csv', 'nw-fuel'); ?></a>
+                </li>
                 <li><?php esc_html_e('Size:', 'nw-fuel'); ?> <?php echo esc_html((string) ($meta['bytes'] ?? 0)); ?> bytes</li>
                 <li><?php esc_html_e('Modified (UTC):', 'nw-fuel'); ?> <?php echo esc_html((string) ($meta['mtime'] ?? $meta['received_at'] ?? '')); ?></li>
                 <?php if (! empty($meta['source_name'])) : ?>
@@ -1058,6 +1267,30 @@ function nw_fuel_render_inventory_api_page(): void
             </ul>
         <?php else : ?>
             <p><?php esc_html_e('No CSV uploaded yet.', 'nw-fuel'); ?></p>
+        <?php endif; ?>
+
+        <h2><?php esc_html_e('Failed inventory files — last 7 days', 'nw-fuel'); ?></h2>
+        <p class="description"><?php esc_html_e('Rejected or failed files are retained beside latest.csv for seven days. Server filesystem paths remain hidden; downloads require an authorized WordPress administrator.', 'nw-fuel'); ?></p>
+        <?php if ($failed_files !== []) : ?>
+            <table class="widefat striped" style="max-width:1100px;margin-top:12px;">
+                <thead><tr><th><?php esc_html_e('Error file', 'nw-fuel'); ?></th><th><?php esc_html_e('Original name', 'nw-fuel'); ?></th><th><?php esc_html_e('Reason', 'nw-fuel'); ?></th><th><?php esc_html_e('Received (UTC)', 'nw-fuel'); ?></th><th><?php esc_html_e('Action', 'nw-fuel'); ?></th></tr></thead>
+                <tbody>
+                <?php foreach ($failed_files as $failed) :
+                    $failed_name = sanitize_file_name((string) ($failed['filename'] ?? ''));
+                    $failed_url  = nw_fuel_inventory_download_url($failed_name);
+                    ?>
+                    <tr>
+                        <td><code><?php echo esc_html($failed_name); ?></code></td>
+                        <td><?php echo esc_html((string) ($failed['source_name'] ?? '')); ?></td>
+                        <td><?php echo esc_html((string) ($failed['reason'] ?? '')); ?></td>
+                        <td><?php echo esc_html((string) ($failed['received_at'] ?? '')); ?></td>
+                        <td><a class="button button-small" href="<?php echo esc_url($failed_url); ?>"><?php esc_html_e('Download', 'nw-fuel'); ?></a></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else : ?>
+            <p><?php esc_html_e('No failed inventory files are currently retained.', 'nw-fuel'); ?></p>
         <?php endif; ?>
 
         <h2><?php esc_html_e('Private API logs', 'nw-fuel'); ?></h2>
@@ -1274,8 +1507,15 @@ function nw_fuel_handle_upload_inventory_file(): void
 
     $csv_bytes = nw_fuel_inventory_uploaded_file_to_csv($tmp, $name);
     if (is_wp_error($csv_bytes)) {
+        $failed = nw_fuel_store_failed_inventory_path($tmp, $name, $csv_bytes->get_error_message());
+        $alert_message = $csv_bytes->get_error_message();
+        $failed_filename = '';
+        if (! is_wp_error($failed)) {
+            $failed_filename = (string) $failed['filename'];
+            $alert_message .= ' Retained as ' . $failed_filename . '.';
+        }
         if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
-            nw_fuel_alert_inventory_upload_failure($csv_bytes->get_error_message(), 'manual_upload');
+            nw_fuel_alert_inventory_upload_failure($alert_message, 'manual_upload', $failed_filename);
         }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
@@ -1288,8 +1528,23 @@ function nw_fuel_handle_upload_inventory_file(): void
     $csv_bytes  = nw_fuel_normalize_inventory_csv_bytes($csv_bytes);
     $validation = nw_fuel_validate_inventory_csv($csv_bytes);
     if (is_wp_error($validation)) {
+        $failed_bytes = $csv_bytes;
+        if (strtolower((string) pathinfo($name, PATHINFO_EXTENSION)) === 'xlsx') {
+            $original_bytes = file_get_contents($tmp);
+            if (is_string($original_bytes) && $original_bytes !== '') {
+                $failed_bytes = $original_bytes;
+            }
+        }
+        $validation = nw_fuel_retain_failed_inventory_error($validation, $failed_bytes, $name);
+        $failed_data = $validation->get_error_data((string) $validation->get_error_code());
+        $alert_message = $validation->get_error_message();
+        $failed_filename = '';
+        if (is_array($failed_data) && ! empty($failed_data['failed_file'])) {
+            $failed_filename = sanitize_file_name((string) $failed_data['failed_file']);
+            $alert_message .= ' Retained as ' . $failed_filename . '.';
+        }
         if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
-            nw_fuel_alert_inventory_upload_failure($validation->get_error_message(), 'manual_upload');
+            nw_fuel_alert_inventory_upload_failure($alert_message, 'manual_upload', $failed_filename);
         }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,
@@ -1301,8 +1556,23 @@ function nw_fuel_handle_upload_inventory_file(): void
 
     $saved = nw_fuel_store_inventory_csv($csv_bytes, $name);
     if (is_wp_error($saved)) {
+        $failed_bytes = $csv_bytes;
+        if (strtolower((string) pathinfo($name, PATHINFO_EXTENSION)) === 'xlsx') {
+            $original_bytes = file_get_contents($tmp);
+            if (is_string($original_bytes) && $original_bytes !== '') {
+                $failed_bytes = $original_bytes;
+            }
+        }
+        $saved = nw_fuel_retain_failed_inventory_error($saved, $failed_bytes, $name);
+        $failed_data = $saved->get_error_data((string) $saved->get_error_code());
+        $alert_message = $saved->get_error_message();
+        $failed_filename = '';
+        if (is_array($failed_data) && ! empty($failed_data['failed_file'])) {
+            $failed_filename = sanitize_file_name((string) $failed_data['failed_file']);
+            $alert_message .= ' Retained as ' . $failed_filename . '.';
+        }
         if (function_exists('nw_fuel_alert_inventory_upload_failure')) {
-            nw_fuel_alert_inventory_upload_failure($saved->get_error_message(), 'manual_upload');
+            nw_fuel_alert_inventory_upload_failure($alert_message, 'manual_upload', $failed_filename);
         }
         set_transient('nw_fuel_inventory_admin_flash', [
             'ok'      => false,

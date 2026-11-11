@@ -17,6 +17,7 @@ const NW_FUEL_PRICE_HISTORY_META     = '_nw_price_history';
 
 add_action('init', 'nw_fuel_register_price_review_post_type');
 add_action('admin_menu', 'nw_fuel_register_price_review_page', 30);
+add_action('wp_dashboard_setup', 'nw_fuel_register_price_review_dashboard_widget');
 add_action('admin_post_nw_fuel_save_price_review_settings', 'nw_fuel_handle_save_price_review_settings');
 add_action('admin_post_nw_fuel_price_review_action', 'nw_fuel_handle_price_review_action');
 add_action('nw_fuel_inventory_sync_complete', 'nw_fuel_send_inventory_result_alert', 20);
@@ -61,7 +62,7 @@ function nw_fuel_price_review_columns(): array
 }
 
 /**
- * @return array{enabled:bool,threshold:float,recipients:string,from_address:string,from_name:string}
+ * @return array{enabled:bool,threshold:float,recipients:string,cc:string,from_address:string,from_name:string}
  */
 function nw_fuel_price_review_settings(): array
 {
@@ -70,12 +71,11 @@ function nw_fuel_price_review_settings(): array
         $saved = [];
     }
 
-    $admin_email = sanitize_email((string) get_option('admin_email'));
-
     return [
         'enabled'      => ! array_key_exists('enabled', $saved) || ! empty($saved['enabled']),
         'threshold'    => min(100.0, max(0.01, (float) ($saved['threshold'] ?? 10))),
-        'recipients'   => (string) ($saved['recipients'] ?? $admin_email),
+        'recipients'   => (string) ($saved['recipients'] ?? 'gord@nwfuel.ca, ahmad@nwfuel.ca, grace@nwfuel.ca'),
+        'cc'           => (string) ($saved['cc'] ?? 'info@webpulse.ca'),
         'from_address' => sanitize_email((string) ($saved['from_address'] ?? 'do-not-reply@webpulse.ca')),
         'from_name'    => sanitize_text_field((string) ($saved['from_name'] ?? 'NWF Website | Automated Message')),
     ];
@@ -97,6 +97,55 @@ function nw_fuel_price_review_recipient_list(): array
     }
 
     return array_values(array_unique($emails));
+}
+
+/**
+ * @return list<string>
+ */
+function nw_fuel_price_review_cc_list(): array
+{
+    $settings = nw_fuel_price_review_settings();
+    $parts    = preg_split('/[,;\s]+/', $settings['cc']) ?: [];
+    $emails   = [];
+    foreach ($parts as $part) {
+        $email = sanitize_email($part);
+        if ($email !== '' && is_email($email)) {
+            $emails[] = strtolower($email);
+        }
+    }
+
+    return array_values(array_unique($emails));
+}
+
+/**
+ * CSV/API failure recipients are operational contacts and are intentionally
+ * not editable from WordPress. Local development is isolated from customers.
+ *
+ * @return list<string>
+ */
+function nw_fuel_inventory_error_recipient_list(): array
+{
+    $host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+    if (in_array($host, ['127.0.0.1', 'localhost', '::1'], true)) {
+        return ['moemortezaei@gmail.com'];
+    }
+
+    return [
+        'gord@nwfuel.ca',
+        'ahmad@nwfuel.ca',
+        'grace@nwfuel.ca',
+    ];
+}
+
+/**
+ * @return list<string>
+ */
+function nw_fuel_inventory_error_cc_list(): array
+{
+    $host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+    return in_array($host, ['127.0.0.1', 'localhost', '::1'], true)
+        ? []
+        : ['info@webpulse.ca'];
 }
 
 /**
@@ -328,7 +377,9 @@ function nw_fuel_send_inventory_result_alert(array $result): void
         return;
     }
 
-    $recipients = nw_fuel_price_review_recipient_list();
+    $recipients = $failed
+        ? nw_fuel_inventory_error_recipient_list()
+        : nw_fuel_price_review_recipient_list();
     if ($recipients === []) {
         return;
     }
@@ -353,6 +404,11 @@ function nw_fuel_send_inventory_result_alert(array $result): void
         $log = is_array($result['log'] ?? null) ? $result['log'] : [];
         foreach (array_slice($log, 0, 10) as $entry) {
             $lines[] = '- ' . sanitize_text_field((string) $entry);
+        }
+        $failed_file = sanitize_file_name((string) ($result['failed_file'] ?? ''));
+        if ($failed_file !== '' && function_exists('nw_fuel_inventory_download_url')) {
+            $lines[] = 'Retained failed file (7 days): ' . $failed_file;
+            $lines[] = 'Download (WordPress admin login required): ' . nw_fuel_inventory_download_url($failed_file);
         }
     }
 
@@ -392,6 +448,12 @@ function nw_fuel_send_inventory_result_alert(array $result): void
     if ($settings['from_address'] !== '' && is_email($settings['from_address'])) {
         $headers[] = sprintf('From: %s <%s>', $settings['from_name'], $settings['from_address']);
     }
+    $cc_list = $failed
+        ? nw_fuel_inventory_error_cc_list()
+        : nw_fuel_price_review_cc_list();
+    foreach ($cc_list as $cc) {
+        $headers[] = 'Cc: ' . $cc;
+    }
 
     if (wp_mail($recipients, $subject, implode("\n", $lines), $headers)) {
         set_transient($dedupe_key, 1, 7 * DAY_IN_SECONDS);
@@ -401,7 +463,7 @@ function nw_fuel_send_inventory_result_alert(array $result): void
 /**
  * Route a pre-sync upload/validation error through the same single-email alert.
  */
-function nw_fuel_alert_inventory_upload_failure(string $message, string $source = 'upload'): void
+function nw_fuel_alert_inventory_upload_failure(string $message, string $source = 'upload', string $failed_file = ''): void
 {
     nw_fuel_send_inventory_result_alert([
         'ok'        => false,
@@ -413,6 +475,7 @@ function nw_fuel_alert_inventory_upload_failure(string $message, string $source 
         'started'   => gmdate('c'),
         'finished'  => gmdate('c'),
         'import_id' => 'upload-' . wp_generate_uuid4(),
+        'failed_file'=> sanitize_file_name($failed_file),
     ]);
 }
 
@@ -434,12 +497,16 @@ function nw_fuel_maybe_alert_inventory_api_failure($response, WP_REST_Server $se
     $status  = 500;
     $code    = '';
     $message = '';
+    $failed_file = '';
     if (is_wp_error($response)) {
         $code    = (string) $response->get_error_code();
         $message = $response->get_error_message($code);
         $error_data = $response->get_error_data($code);
         if (is_array($error_data) && isset($error_data['status'])) {
             $status = (int) $error_data['status'];
+        }
+        if (is_array($error_data) && isset($error_data['failed_file'])) {
+            $failed_file = sanitize_file_name((string) $error_data['failed_file']);
         }
     } else {
         $rest_response = rest_ensure_response($response);
@@ -448,6 +515,9 @@ function nw_fuel_maybe_alert_inventory_api_failure($response, WP_REST_Server $se
         if (is_array($data)) {
             $code    = (string) ($data['code'] ?? '');
             $message = (string) ($data['message'] ?? '');
+            if (is_array($data['data'] ?? null) && isset($data['data']['failed_file'])) {
+                $failed_file = sanitize_file_name((string) $data['data']['failed_file']);
+            }
         }
     }
     if ($status < 400) {
@@ -464,7 +534,11 @@ function nw_fuel_maybe_alert_inventory_api_failure($response, WP_REST_Server $se
         return $response;
     }
 
-    nw_fuel_alert_inventory_upload_failure($message !== '' ? $message : 'Inventory API upload failed.', 'api_upload');
+    $message = $message !== '' ? $message : 'Inventory API upload failed.';
+    if ($failed_file !== '') {
+        $message .= ' Retained as ' . $failed_file . '.';
+    }
+    nw_fuel_alert_inventory_upload_failure($message, 'api_upload', $failed_file);
 
     return $response;
 }
@@ -529,11 +603,20 @@ function nw_fuel_handle_save_price_review_settings(): void
             $valid[] = strtolower($email);
         }
     }
+    $raw_cc = sanitize_textarea_field((string) wp_unslash($_POST['cc'] ?? ''));
+    $valid_cc = [];
+    foreach (preg_split('/[,;\s]+/', $raw_cc) ?: [] as $candidate) {
+        $email = sanitize_email($candidate);
+        if ($email !== '' && is_email($email)) {
+            $valid_cc[] = strtolower($email);
+        }
+    }
 
     update_option(NW_FUEL_PRICE_REVIEW_SETTINGS, [
         'enabled'      => ! empty($_POST['enabled']),
         'threshold'    => min(100.0, max(0.01, $threshold)),
         'recipients'   => implode(', ', array_values(array_unique($valid))),
+        'cc'           => implode(', ', array_values(array_unique($valid_cc))),
         'from_address' => sanitize_email((string) wp_unslash($_POST['from_address'] ?? '')),
         'from_name'    => sanitize_text_field((string) wp_unslash($_POST['from_name'] ?? '')),
     ], false);
@@ -623,13 +706,121 @@ function nw_fuel_handle_price_review_action(): void
         }
     }
 
-    wp_safe_redirect(add_query_arg([
-        'post_type' => 'product',
-        'page'      => 'nw-fuel-price-review',
-        'decided'   => $changed,
-        'decision'  => $decision,
-    ], admin_url('edit.php')));
+    $redirect_to = sanitize_key((string) wp_unslash($_POST['redirect_to'] ?? 'price_review'));
+    $redirect = $redirect_to === 'dashboard'
+        ? add_query_arg([
+            'nw_price_decided'  => $changed,
+            'nw_price_decision' => $decision,
+        ], admin_url('index.php'))
+        : add_query_arg([
+            'post_type' => 'product',
+            'page'      => 'nw-fuel-price-review',
+            'decided'   => $changed,
+            'decision'  => $decision,
+        ], admin_url('edit.php'));
+    wp_safe_redirect($redirect);
     exit;
+}
+
+/**
+ * Put pending price decisions on the main WordPress Dashboard.
+ */
+function nw_fuel_register_price_review_dashboard_widget(): void
+{
+    if (! current_user_can('manage_woocommerce')) {
+        return;
+    }
+
+    $count = nw_fuel_pending_price_review_count();
+    wp_add_dashboard_widget(
+        'nw_fuel_price_review_dashboard',
+        sprintf(
+            /* translators: %d: pending review count */
+            __('Price changes waiting for review (%d)', 'nw-fuel'),
+            $count
+        ),
+        'nw_fuel_render_price_review_dashboard_widget'
+    );
+
+    // Keep this operational alert at the top of the main dashboard column.
+    global $wp_meta_boxes;
+    if (isset($wp_meta_boxes['dashboard']['normal']['core']['nw_fuel_price_review_dashboard'])) {
+        $widget = $wp_meta_boxes['dashboard']['normal']['core']['nw_fuel_price_review_dashboard'];
+        unset($wp_meta_boxes['dashboard']['normal']['core']['nw_fuel_price_review_dashboard']);
+        $wp_meta_boxes['dashboard']['normal']['core'] = [
+            'nw_fuel_price_review_dashboard' => $widget,
+        ] + $wp_meta_boxes['dashboard']['normal']['core'];
+    }
+}
+
+function nw_fuel_render_price_review_dashboard_widget(): void
+{
+    $query = new WP_Query([
+        'post_type'      => NW_FUEL_PRICE_REVIEW_POST_TYPE,
+        'post_status'    => 'publish',
+        'posts_per_page' => 5,
+        'orderby'        => 'modified',
+        'order'          => 'DESC',
+        'meta_key'       => '_nw_review_status',
+        'meta_value'     => 'pending',
+    ]);
+
+    if (isset($_GET['nw_price_decided'])) {
+        $changed  = absint($_GET['nw_price_decided']);
+        $decision = sanitize_key((string) wp_unslash($_GET['nw_price_decision'] ?? ''));
+        echo '<div class="notice notice-success inline"><p>';
+        echo esc_html(sprintf(
+            /* translators: 1: decision, 2: count */
+            __('Price review %1$s applied to %2$d product(s).', 'nw-fuel'),
+            $decision === 'approve' ? __('approval', 'nw-fuel') : __('rejection', 'nw-fuel'),
+            $changed
+        ));
+        echo '</p></div>';
+    }
+
+    if (! $query->have_posts()) {
+        echo '<p><span class="dashicons dashicons-yes-alt" style="color:#00a32a"></span> ';
+        esc_html_e('No price changes are waiting for review.', 'nw-fuel');
+        echo '</p>';
+        echo '<p><a href="' . esc_url(admin_url('edit.php?post_type=product&page=nw-fuel-price-review')) . '">';
+        esc_html_e('View price review history', 'nw-fuel');
+        echo '</a></p>';
+        return;
+    }
+    ?>
+    <p style="margin-top:0"><?php esc_html_e('These decreases are held. The current prices stay live until you approve them.', 'nw-fuel'); ?></p>
+    <table class="widefat striped" style="border:0">
+      <thead><tr><th><?php esc_html_e('Product', 'nw-fuel'); ?></th><th><?php esc_html_e('Proposed change', 'nw-fuel'); ?></th><th><?php esc_html_e('Decision', 'nw-fuel'); ?></th></tr></thead>
+      <tbody>
+      <?php while ($query->have_posts()) : $query->the_post();
+          $review_id = get_the_ID();
+          $product_id = (int) get_post_meta($review_id, '_nw_product_id', true);
+          $part = (string) get_post_meta($review_id, '_nw_part_number', true);
+          $changes = get_post_meta($review_id, '_nw_review_changes', true);
+          ?>
+        <tr>
+          <td><strong><a href="<?php echo esc_url(get_edit_post_link($product_id) ?: '#'); ?>"><?php echo esc_html(get_the_title($product_id)); ?></a></strong><br><code><?php echo esc_html($part); ?></code></td>
+          <td>
+            <?php if (is_array($changes)) : foreach ($changes as $change) : if (! is_array($change)) { continue; } ?>
+              <div><strong><?php echo esc_html((string) ($change['label'] ?? __('Price', 'nw-fuel'))); ?></strong>: <del><?php echo esc_html('$' . (string) ($change['old'] ?? '0.00')); ?></del> &rarr; <strong><?php echo esc_html('$' . ((string) ($change['proposed'] ?? '') !== '' ? (string) $change['proposed'] : '0.00')); ?></strong> <span style="color:#b32d2e"><?php echo esc_html('(-' . (string) ($change['decrease_percent'] ?? '0') . '%)'); ?></span></div>
+            <?php endforeach; endif; ?>
+          </td>
+          <td>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:flex;gap:6px;flex-wrap:wrap">
+              <input type="hidden" name="action" value="nw_fuel_price_review_action">
+              <input type="hidden" name="redirect_to" value="dashboard">
+              <input type="hidden" name="review_ids[]" value="<?php echo esc_attr((string) $review_id); ?>">
+              <?php wp_nonce_field('nw_fuel_price_review_action'); ?>
+              <button class="button button-primary button-small" name="decision" value="approve" onclick="return confirm('<?php echo esc_js(__('Apply this proposed price?', 'nw-fuel')); ?>')"><?php esc_html_e('Approve', 'nw-fuel'); ?></button>
+              <button class="button button-small" name="decision" value="reject" onclick="return confirm('<?php echo esc_js(__('Reject this change and keep the current price?', 'nw-fuel')); ?>')"><?php esc_html_e('Reject', 'nw-fuel'); ?></button>
+            </form>
+          </td>
+        </tr>
+      <?php endwhile; wp_reset_postdata(); ?>
+      </tbody>
+    </table>
+    <p style="margin-bottom:0"><a class="button" href="<?php echo esc_url(admin_url('edit.php?post_type=product&page=nw-fuel-price-review')); ?>"><?php esc_html_e('View all price reviews', 'nw-fuel'); ?></a></p>
+    <?php
 }
 
 /**
@@ -721,7 +912,8 @@ function nw_fuel_render_price_review_page(): void
           <table class="form-table" role="presentation">
             <tr><th scope="row"><?php esc_html_e('Protection', 'nw-fuel'); ?></th><td><label><input type="checkbox" name="enabled" value="1" <?php checked($settings['enabled']); ?>> <?php esc_html_e('Hold large price decreases for approval', 'nw-fuel'); ?></label></td></tr>
             <tr><th scope="row"><label for="nw-threshold"><?php esc_html_e('Decrease threshold', 'nw-fuel'); ?></label></th><td><input id="nw-threshold" name="threshold" type="number" min="0.01" max="100" step="0.01" value="<?php echo esc_attr((string) $settings['threshold']); ?>"> %</td></tr>
-            <tr><th scope="row"><label for="nw-recipients"><?php esc_html_e('Alert recipients', 'nw-fuel'); ?></label></th><td><textarea id="nw-recipients" name="recipients" class="large-text" rows="2"><?php echo esc_textarea($settings['recipients']); ?></textarea><p class="description"><?php esc_html_e('Separate multiple email addresses with commas.', 'nw-fuel'); ?></p></td></tr>
+            <tr><th scope="row"><label for="nw-recipients"><?php esc_html_e('Price-change recipients', 'nw-fuel'); ?></label></th><td><textarea id="nw-recipients" name="recipients" class="large-text" rows="2"><?php echo esc_textarea($settings['recipients']); ?></textarea><p class="description"><?php esc_html_e('Used only for price-review alerts. Separate multiple email addresses with commas.', 'nw-fuel'); ?></p></td></tr>
+            <tr><th scope="row"><label for="nw-cc"><?php esc_html_e('Price-change CC', 'nw-fuel'); ?></label></th><td><input id="nw-cc" name="cc" type="text" class="large-text" value="<?php echo esc_attr($settings['cc']); ?>"><p class="description"><?php esc_html_e('Used only for price-review alerts. CSV/API error recipients are fixed in code.', 'nw-fuel'); ?></p></td></tr>
             <tr><th scope="row"><label for="nw-from-address"><?php esc_html_e('From address', 'nw-fuel'); ?></label></th><td><input id="nw-from-address" name="from_address" type="email" class="regular-text" value="<?php echo esc_attr($settings['from_address']); ?>"></td></tr>
             <tr><th scope="row"><label for="nw-from-name"><?php esc_html_e('From name', 'nw-fuel'); ?></label></th><td><input id="nw-from-name" name="from_name" type="text" class="regular-text" value="<?php echo esc_attr($settings['from_name']); ?>"></td></tr>
           </table>
