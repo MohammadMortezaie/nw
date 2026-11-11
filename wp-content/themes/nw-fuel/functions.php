@@ -11,7 +11,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('NW_FUEL_VERSION', '1.15.1');
+define('NW_FUEL_VERSION', '1.16.3');
 define('NW_FUEL_DIR', get_template_directory());
 define('NW_FUEL_URI', get_template_directory_uri());
 

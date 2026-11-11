@@ -133,7 +133,7 @@ function nw_fuel_home_content_defaults(): array
         'duo_promise_text'      => 'Solid diagnostics mean you replace the parts that are worn, not everything in the assembly. Rebuilds include a 12 month unlimited kilometre warranty.',
         'banner_eyebrow'        => 'Beyond the Catalog',
         'banner_title'          => 'We Fix It. We Build It.',
-        'banner_text'           => 'Cannot find the exact part or service you need? Our Surrey shop repairs, rebuilds, and fabricates diesel injection components that do not always fit a standard catalog line. Tell us what you are working on and we will find a path forward.',
+        'banner_text'           => 'Can’t find the part you need? We can build it for you. Our Surrey team repairs, rebuilds, and fabricates diesel injection components for your application. Send us your part number or requirements to request a custom quote.',
         'banner_cta'            => 'Request a Quote',
         'more_parts_title'      => 'More Diesel Parts',
         'more_parts_text'       => 'Injectors, pumps, turbos, and component parts for Cummins, Powerstroke, and Duramax applications. Browse the catalog or call the shop when you need parts today.',
