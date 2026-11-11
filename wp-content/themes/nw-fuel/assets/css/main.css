@@ -1335,7 +1335,18 @@ h1, h2, h3, h4, p { margin: 0; }
     font-size: 0.8125rem; padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
-  .hero__fade { animation-name: heroTextFadeMobile; }
+  /*
+   * Mobile browsers can restart off-screen entrance animations when the hero
+   * is composited again, leaving individual headings, paragraphs, or the
+   * category rail on the opacity: 0 keyframe. Keep hero content permanently
+   * visible on small screens; decorative motion remains unaffected.
+   */
+  .hero__fade {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    -webkit-animation: none;
+  }
 
   /* Page & service heroes */
   .page-hero { padding-top: calc(2.5rem + env(safe-area-inset-top, 0)); }
