@@ -526,7 +526,8 @@
     padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top, 0));
   }
   .page-home .hero {
-    min-height: calc(100dvh - var(--mobile-header-height) - env(safe-area-inset-top, 0));
+    min-height: calc(100vh - var(--mobile-header-height) - env(safe-area-inset-top, 0));
+    min-height: calc(100svh - var(--mobile-header-height) - env(safe-area-inset-top, 0));
   }
   .page-home .hero__overlay {
     background: linear-gradient(
@@ -540,8 +541,9 @@
     width: 100%;
     max-width: none;
     justify-content: center;
-    padding-top: clamp(1.5rem, 5vh, 2.75rem);
-    padding-bottom: calc(clamp(1.25rem, 4vh, 2rem) + env(safe-area-inset-bottom, 0));
+    justify-content: safe center;
+    padding-top: clamp(1.5rem, 7vw, 2.75rem);
+    padding-bottom: calc(clamp(1.25rem, 5vw, 2rem) + env(safe-area-inset-bottom, 0));
   }
   .page-home .hero__eyebrow {
     margin-bottom: 0.375rem;
@@ -556,13 +558,6 @@
     margin-bottom: 0.75rem;
     font-size: 0.8125rem;
     line-height: 1.45;
-  }
-}
-@media (max-width: 767px) and (max-height: 680px) {
-  .page-home .hero__content {
-    justify-content: flex-start;
-    padding-top: 1rem;
-    padding-bottom: calc(0.875rem + env(safe-area-inset-bottom, 0));
   }
 }
 .hero-cats {
