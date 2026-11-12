@@ -387,6 +387,18 @@
       }
     }
 
+    function appendProductPhoto($wrap, image) {
+      var $template = $('#nw-tpl-product-photo');
+      var id = String(image.id || '');
+      var url = image.fullUrl || image.url || '';
+      if (!$template.length || !id || !url) return false;
+      if ($wrap.find('input[name="nw_product_photo_ids[]"][value="' + id + '"]').length) return false;
+      var html = $template.html().replace(/__ID__/g, id).replace(/__URL__/g, url);
+      $wrap.find('.nw-product-photos__list').append(html);
+      syncProductPhotos($wrap);
+      return true;
+    }
+
     $(document).on('click', '[data-nw-product-photos-add]', function (e) {
       e.preventDefault();
       var $wrap = $(this).closest('[data-nw-product-photos]');
@@ -394,11 +406,26 @@
       var remain = max - productPhotoCount($wrap);
       if (remain <= 0 || typeof wp === 'undefined' || !wp.media) return;
 
+      var uploaderParams = wp.Uploader && wp.Uploader.defaults && wp.Uploader.defaults.multipart_params;
+      var previousProductId = uploaderParams ? uploaderParams.nw_fuel_product_id : undefined;
+      var previousNonce = uploaderParams ? uploaderParams.nw_fuel_product_upload_nonce : undefined;
+      if (uploaderParams) {
+        uploaderParams.nw_fuel_product_id = String($wrap.data('product-id') || '');
+        uploaderParams.nw_fuel_product_upload_nonce = String($wrap.data('upload-nonce') || '');
+      }
+
       var frame = wp.media({
-        title: 'Select product photos',
-        button: { text: 'Use photos' },
+        title: 'Add product photos',
+        button: { text: 'Use product photos' },
         library: { type: 'image' },
         multiple: true
+      });
+      frame.on('close', function () {
+        if (!uploaderParams) return;
+        if (previousProductId === undefined) delete uploaderParams.nw_fuel_product_id;
+        else uploaderParams.nw_fuel_product_id = previousProductId;
+        if (previousNonce === undefined) delete uploaderParams.nw_fuel_product_upload_nonce;
+        else uploaderParams.nw_fuel_product_upload_nonce = previousNonce;
       });
       frame.on('select', function () {
         var $template = $('#nw-tpl-product-photo');
@@ -409,8 +436,7 @@
           var id = String(json.id || '');
           if (!id || $wrap.find('input[name="nw_product_photo_ids[]"][value="' + id + '"]').length) return;
           var url = (json.sizes && json.sizes.medium && json.sizes.medium.url) || json.url || '';
-          var html = $template.html().replace(/__ID__/g, id).replace(/__URL__/g, url);
-          $wrap.find('.nw-product-photos__list').append(html);
+          appendProductPhoto($wrap, { id: id, url: url, fullUrl: json.url || url });
         });
         syncProductPhotos($wrap);
       });
@@ -433,6 +459,78 @@
       } else {
         $item.next('.nw-product-photos__item').after($item);
       }
+    });
+
+    function setProductPhotoPosition($item, x, y) {
+      x = Math.max(0, Math.min(100, Math.round(x * 100) / 100));
+      y = Math.max(0, Math.min(100, Math.round(y * 100) / 100));
+      $item.attr('data-position-x', x).attr('data-position-y', y);
+      $item.find('[data-nw-position-x]').val(x);
+      $item.find('[data-nw-position-y]').val(y);
+      $item.find('.nw-product-photos__thumb').css('object-position', x + '% ' + y + '%');
+    }
+
+    function productPhotoPosition($item, axis) {
+      var value = parseFloat($item.attr('data-position-' + axis));
+      return Number.isFinite(value) ? value : 50;
+    }
+
+    $(document).on('pointerdown', '[data-nw-product-photo-frame]', function (e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      var frame = this;
+      var $frame = $(frame);
+      var $item = $frame.closest('[data-nw-product-photo]');
+      var img = $frame.find('img').get(0);
+      if (!img || !img.naturalWidth || !img.naturalHeight) return;
+
+      e.preventDefault();
+      frame.setPointerCapture(e.pointerId);
+      $frame.addClass('is-dragging');
+      var rect = frame.getBoundingClientRect();
+      var scale = Math.max(rect.width / img.naturalWidth, rect.height / img.naturalHeight);
+      var overflowX = Math.max(0, img.naturalWidth * scale - rect.width);
+      var overflowY = Math.max(0, img.naturalHeight * scale - rect.height);
+      var startClientX = e.clientX;
+      var startClientY = e.clientY;
+      var startX = productPhotoPosition($item, 'x');
+      var startY = productPhotoPosition($item, 'y');
+
+      function move(event) {
+        var x = overflowX > 0.5 ? startX - ((event.clientX - startClientX) / overflowX * 100) : 50;
+        var y = overflowY > 0.5 ? startY - ((event.clientY - startClientY) / overflowY * 100) : 50;
+        setProductPhotoPosition($item, x, y);
+      }
+
+      function stop(event) {
+        if (frame.hasPointerCapture(event.pointerId)) frame.releasePointerCapture(event.pointerId);
+        $frame.removeClass('is-dragging');
+        frame.removeEventListener('pointermove', move);
+        frame.removeEventListener('pointerup', stop);
+        frame.removeEventListener('pointercancel', stop);
+      }
+
+      frame.addEventListener('pointermove', move);
+      frame.addEventListener('pointerup', stop);
+      frame.addEventListener('pointercancel', stop);
+    });
+
+    $(document).on('keydown', '[data-nw-product-photo-frame]', function (e) {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) === -1) return;
+      e.preventDefault();
+      var $item = $(this).closest('[data-nw-product-photo]');
+      var x = productPhotoPosition($item, 'x');
+      var y = productPhotoPosition($item, 'y');
+      var step = e.shiftKey ? 5 : 1;
+      if (e.key === 'ArrowLeft') x -= step;
+      if (e.key === 'ArrowRight') x += step;
+      if (e.key === 'ArrowUp') y -= step;
+      if (e.key === 'ArrowDown') y += step;
+      setProductPhotoPosition($item, x, y);
+    });
+
+    $(document).on('click', '[data-nw-product-photo-reset]', function (e) {
+      e.preventDefault();
+      setProductPhotoPosition($(this).closest('[data-nw-product-photo]'), 50, 50);
     });
   });
 })(jQuery);

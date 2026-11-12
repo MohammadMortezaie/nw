@@ -11,11 +11,12 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('NW_FUEL_VERSION', '1.16.6');
+define('NW_FUEL_VERSION', '1.17.0');
 define('NW_FUEL_DIR', get_template_directory());
 define('NW_FUEL_URI', get_template_directory_uri());
 
 require_once NW_FUEL_DIR . '/inc/helpers.php';
+require_once NW_FUEL_DIR . '/inc/product-images.php';
 require_once NW_FUEL_DIR . '/inc/setup.php';
 require_once NW_FUEL_DIR . '/inc/assets.php';
 require_once NW_FUEL_DIR . '/inc/post-types.php';

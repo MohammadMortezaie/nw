@@ -306,6 +306,8 @@
       const src = thumb.dataset.src || (thumbImg && thumbImg.src);
       if (src) {
         main.src = src;
+        main.style.objectPosition = (thumb.dataset.positionX || '50') + '% ' + (thumb.dataset.positionY || '50') + '%';
+        main.classList.toggle('is-product-positioned', thumb.dataset.positioned === '1');
         if (zoomLink) zoomLink.setAttribute('href', src);
       }
     }

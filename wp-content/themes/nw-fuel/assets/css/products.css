@@ -1056,6 +1056,9 @@ body.page-products {
   height: 100%;
   object-fit: contain;
 }
+.product-gallery__main img.is-product-positioned {
+  object-fit: cover;
+}
 .product-gallery__zoom {
   display: block;
   width: 100%;
@@ -1182,6 +1185,9 @@ body.page-products {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+.product-gallery__thumb img.is-product-positioned {
+  object-fit: cover;
 }
 
 @media (min-width: 1024px) {

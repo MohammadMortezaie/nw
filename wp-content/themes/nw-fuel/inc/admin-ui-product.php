@@ -200,25 +200,26 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
 
       <div class="nw-admin-panel">
         <h3 class="nw-admin-panel__title"><?php esc_html_e('Product photos', 'nw-fuel'); ?></h3>
-        <p class="nw-admin-panel__help"><?php echo esc_html(sprintf(/* translators: %d: max photos */ __('Upload 1 to %d photos. The first photo is the main catalog image.', 'nw-fuel'), $photo_max)); ?></p>
+        <p class="nw-admin-panel__help"><?php echo esc_html(sprintf(/* translators: %d: max photos */ __('Upload 1 to %d photos. JPG and PNG uploads are optimized as WebP. Drag each preview to centre the product; the first photo is the main catalog image.', 'nw-fuel'), $photo_max)); ?></p>
         <?php if ($photo_ids === [] && $has_remote) : ?>
         <p class="description"><?php esc_html_e('This product currently uses remote image URLs. Upload photos here to replace them.', 'nw-fuel'); ?></p>
         <?php endif; ?>
         <input type="hidden" name="nw_product_photos_present" value="1">
-        <div class="nw-product-photos" data-nw-product-photos data-max="<?php echo esc_attr((string) $photo_max); ?>">
+        <div class="nw-product-photos" data-nw-product-photos data-max="<?php echo esc_attr((string) $photo_max); ?>" data-product-id="<?php echo esc_attr((string) $post->ID); ?>" data-upload-nonce="<?php echo esc_attr(wp_create_nonce('nw_fuel_product_media_upload')); ?>">
           <p class="nw-admin-empty"<?php echo $photo_ids ? ' style="display:none"' : ''; ?>><?php esc_html_e('No photos yet. Add at least one.', 'nw-fuel'); ?></p>
           <div class="nw-product-photos__list">
             <?php foreach ($photo_ids as $photo_id) :
-                nw_fuel_render_product_photo_item((int) $photo_id);
+                nw_fuel_render_product_photo_item((int) $photo_id, '', $post->ID);
             endforeach; ?>
           </div>
-          <p>
-            <button type="button" class="button" data-nw-product-photos-add<?php echo count($photo_ids) >= $photo_max ? ' disabled' : ''; ?>><?php esc_html_e('Add photos', 'nw-fuel'); ?></button>
+          <div class="nw-product-photos__upload-actions">
+            <button type="button" class="button button-primary" data-nw-product-photos-add<?php echo count($photo_ids) >= $photo_max ? ' disabled' : ''; ?>><?php esc_html_e('Add or upload photos', 'nw-fuel'); ?></button>
             <span class="description" data-nw-product-photos-count><?php echo esc_html(sprintf(/* translators: 1: current count, 2: max */ __('%1$d of %2$d photos', 'nw-fuel'), count($photo_ids), $photo_max)); ?></span>
-          </p>
+          </div>
+          <p class="description"><?php esc_html_e('In the WordPress Media window, upload new JPG or PNG files or select existing images. New uploads here are automatically optimized as WebP.', 'nw-fuel'); ?></p>
         </div>
         <template id="nw-tpl-product-photo">
-          <?php nw_fuel_render_product_photo_item(0, '__URL__'); ?>
+          <?php nw_fuel_render_product_photo_item(0, '__URL__', $post->ID); ?>
         </template>
       </div>
 
@@ -401,19 +402,29 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
 /**
  * One product photo slot (attachment ID).
  */
-function nw_fuel_render_product_photo_item(int $attachment_id, string $url = ''): void
+function nw_fuel_render_product_photo_item(int $attachment_id, string $url = '', int $product_id = 0): void
 {
     if ($url === '' && $attachment_id > 0) {
-        $url = (string) (wp_get_attachment_image_url($attachment_id, 'medium') ?: wp_get_attachment_image_url($attachment_id, 'full') ?: '');
+        $url = (string) (wp_get_attachment_image_url($attachment_id, 'full') ?: wp_get_attachment_image_url($attachment_id, 'medium') ?: '');
     }
+    $position = $attachment_id > 0 && $product_id > 0
+        ? nw_fuel_product_image_position($product_id, $attachment_id)
+        : ['x' => 50.0, 'y' => 50.0];
+    $input_id = $attachment_id > 0 ? (string) $attachment_id : '__ID__';
     ?>
-    <div class="nw-product-photos__item">
-      <img class="nw-product-photos__thumb" src="<?php echo esc_attr($url); ?>" alt="">
-      <input type="hidden" name="nw_product_photo_ids[]" value="<?php echo esc_attr($attachment_id > 0 ? (string) $attachment_id : '__ID__'); ?>">
+    <div class="nw-product-photos__item" data-nw-product-photo data-position-x="<?php echo esc_attr(nw_fuel_css_number($position['x'])); ?>" data-position-y="<?php echo esc_attr(nw_fuel_css_number($position['y'])); ?>">
+      <div class="nw-product-photos__frame" data-nw-product-photo-frame tabindex="0" role="application" aria-label="<?php esc_attr_e('Drag to reposition this product image. Use arrow keys for fine adjustments.', 'nw-fuel'); ?>">
+        <img class="nw-product-photos__thumb" src="<?php echo esc_attr($url); ?>" alt="" draggable="false" style="object-position:<?php echo esc_attr(nw_fuel_css_number($position['x']) . '% ' . nw_fuel_css_number($position['y']) . '%'); ?>">
+        <span class="nw-product-photos__drag-hint"><?php esc_html_e('Drag to reposition', 'nw-fuel'); ?></span>
+      </div>
+      <input type="hidden" name="nw_product_photo_ids[]" value="<?php echo esc_attr($input_id); ?>">
+      <input type="hidden" name="nw_product_photo_position_x[<?php echo esc_attr($input_id); ?>]" value="<?php echo esc_attr(nw_fuel_css_number($position['x'])); ?>" data-nw-position-x>
+      <input type="hidden" name="nw_product_photo_position_y[<?php echo esc_attr($input_id); ?>]" value="<?php echo esc_attr(nw_fuel_css_number($position['y'])); ?>" data-nw-position-y>
       <span class="nw-product-photos__badge"><?php esc_html_e('Main', 'nw-fuel'); ?></span>
       <div class="nw-product-photos__item-actions">
         <button type="button" class="button-link" data-nw-product-photos-move="up"><?php esc_html_e('Up', 'nw-fuel'); ?></button>
         <button type="button" class="button-link" data-nw-product-photos-move="down"><?php esc_html_e('Down', 'nw-fuel'); ?></button>
+        <button type="button" class="button-link" data-nw-product-photo-reset><?php esc_html_e('Centre', 'nw-fuel'); ?></button>
         <button type="button" class="button-link-delete" data-nw-product-photos-remove><?php esc_html_e('Remove', 'nw-fuel'); ?></button>
       </div>
     </div>
@@ -639,9 +650,23 @@ function nw_fuel_save_product_photos(int $post_id): void
         delete_post_thumbnail($post_id);
         delete_post_meta($post_id, '_thumbnail_id');
         delete_post_meta($post_id, '_product_image_gallery');
+        delete_post_meta($post_id, '_nw_product_image_positions');
         return;
     }
 
     set_post_thumbnail($post_id, $ids[0]);
     update_post_meta($post_id, '_product_image_gallery', implode(',', array_slice($ids, 1)));
+
+    $raw_x = wp_unslash($_POST['nw_product_photo_position_x'] ?? []);
+    $raw_y = wp_unslash($_POST['nw_product_photo_position_y'] ?? []);
+    $raw_x = is_array($raw_x) ? $raw_x : [];
+    $raw_y = is_array($raw_y) ? $raw_y : [];
+    $positions = [];
+    foreach ($ids as $id) {
+        $positions[$id] = [
+            'x' => nw_fuel_clamp_product_image_position($raw_x[$id] ?? 50),
+            'y' => nw_fuel_clamp_product_image_position($raw_y[$id] ?? 50),
+        ];
+    }
+    update_post_meta($post_id, '_nw_product_image_positions', $positions);
 }

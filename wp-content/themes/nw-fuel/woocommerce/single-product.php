@@ -20,7 +20,8 @@ while (have_posts()) :
     $business   = nw_fuel_business();
     $part       = nw_fuel_get_part_number($product_id);
     $code       = nw_fuel_get_product_code($product_id);
-    $gallery    = nw_fuel_product_gallery_urls($product_id);
+    $gallery_items = nw_fuel_product_gallery_items($product_id);
+    $gallery    = array_values(array_map(static fn (array $item): string => (string) $item['url'], $gallery_items));
     $inventory  = nw_fuel_product_inventory($product_id);
     $features   = nw_fuel_json_meta($product_id, '_nw_features');
     $specs      = array_values(array_filter(
@@ -73,7 +74,7 @@ while (have_posts()) :
       <div class="product-gallery__main">
         <?php if ($gallery) : ?>
         <a href="<?php echo esc_url($gallery[0]); ?>" class="product-gallery__zoom" data-gallery-lightbox aria-label="<?php esc_attr_e('View larger image', 'nw-fuel'); ?>">
-          <img id="gallery-main" src="<?php echo esc_url($gallery[0]); ?>" alt="<?php echo esc_attr($product->get_name() . ', ' . $brand); ?>">
+          <img id="gallery-main" class="<?php echo ! empty($gallery_items[0]['positioned']) ? 'is-product-positioned' : ''; ?>" src="<?php echo esc_url($gallery[0]); ?>" alt="<?php echo esc_attr($product->get_name() . ', ' . $brand); ?>" style="object-position:<?php echo esc_attr(nw_fuel_css_number((float) ($gallery_items[0]['x'] ?? 50)) . '% ' . nw_fuel_css_number((float) ($gallery_items[0]['y'] ?? 50)) . '%'); ?>">
         </a>
         <button type="button" class="product-gallery__zoom-toggle" data-gallery-zoom-toggle aria-label="<?php esc_attr_e('Zoom in', 'nw-fuel'); ?>" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -96,8 +97,8 @@ while (have_posts()) :
       </div>
       <?php if (count($gallery) > 1) : ?>
       <div class="product-gallery__thumbs">
-        <?php foreach ($gallery as $i => $img) : ?>
-        <button type="button" class="product-gallery__thumb<?php echo $i === 0 ? ' is-active' : ''; ?>" data-src="<?php echo esc_url($img); ?>" aria-label="<?php echo esc_attr(sprintf(__('View product image %d', 'nw-fuel'), $i + 1)); ?>"><img src="<?php echo esc_url($img); ?>" alt=""></button>
+        <?php foreach ($gallery_items as $i => $item) : ?>
+        <button type="button" class="product-gallery__thumb<?php echo $i === 0 ? ' is-active' : ''; ?>" data-src="<?php echo esc_url((string) $item['url']); ?>" data-position-x="<?php echo esc_attr(nw_fuel_css_number((float) $item['x'])); ?>" data-position-y="<?php echo esc_attr(nw_fuel_css_number((float) $item['y'])); ?>" data-positioned="<?php echo ! empty($item['positioned']) ? '1' : '0'; ?>" aria-label="<?php echo esc_attr(sprintf(__('View product image %d', 'nw-fuel'), $i + 1)); ?>"><img class="<?php echo ! empty($item['positioned']) ? 'is-product-positioned' : ''; ?>" src="<?php echo esc_url((string) $item['url']); ?>" alt="" style="object-position:<?php echo esc_attr(nw_fuel_css_number((float) $item['x']) . '% ' . nw_fuel_css_number((float) $item['y']) . '%'); ?>"></button>
         <?php endforeach; ?>
       </div>
       <?php endif; ?>

@@ -17,8 +17,9 @@ $brands       = nw_fuel_product_term_names($product_id, 'pa_brand');
 $brand        = $brands[0] ?? '';
 $vehicles     = nw_fuel_product_term_names($product_id, 'pa_vehicle-type');
 $engines      = nw_fuel_product_term_names($product_id, 'pa_engine-type');
-$gallery      = nw_fuel_product_gallery_urls($product_id);
-$image        = $gallery[0] ?? '';
+$gallery_items = nw_fuel_product_gallery_items($product_id);
+$image_item   = $gallery_items[0] ?? null;
+$image        = is_array($image_item) ? (string) ($image_item['url'] ?? '') : '';
 $inventory    = nw_fuel_product_inventory($product_id);
 $alts         = nw_fuel_get_search_alts($product_id);
 $permalink    = nw_fuel_product_url($product);
@@ -38,7 +39,7 @@ if ($part_number !== '') {
   data-engine="<?php echo esc_attr(implode(',', $engines)); ?>"
   aria-label="<?php echo esc_attr($label); ?>">
   <span class="catalog-product__media">
-    <?php if ($image) : ?><img src="<?php echo esc_url($image); ?>" alt="" loading="lazy"><?php endif; ?>
+    <?php if ($image) : ?><img src="<?php echo esc_url($image); ?>" alt="" loading="lazy"<?php if (is_array($image_item)) : ?> style="object-position:<?php echo esc_attr(nw_fuel_css_number((float) $image_item['x']) . '% ' . nw_fuel_css_number((float) $image_item['y']) . '%'); ?>"<?php endif; ?>><?php endif; ?>
     <span class="catalog-product__tag"><?php echo esc_html($category); ?></span>
   </span>
   <span class="catalog-product__body">

@@ -13,8 +13,9 @@ if (! $product instanceof WC_Product) {
 }
 
 $product_id = $product->get_id();
-$gallery    = nw_fuel_product_gallery_urls($product_id);
-$image      = $gallery[0] ?? '';
+$gallery_items = nw_fuel_product_gallery_items($product_id);
+$image_item = $gallery_items[0] ?? null;
+$image      = is_array($image_item) ? (string) ($image_item['url'] ?? '') : '';
 if ($image === '' && $product->get_image_id()) {
     $image = (string) wp_get_attachment_image_url($product->get_image_id(), 'large');
 }
@@ -29,7 +30,7 @@ $permalink  = nw_fuel_product_url($product);
 <a href="<?php echo esc_url($permalink); ?>" class="home-product" aria-label="<?php echo esc_attr($product->get_name()); ?>">
   <span class="home-product__media">
     <?php if ($image) : ?>
-    <img src="<?php echo esc_url($image); ?>" alt="" loading="lazy">
+    <img src="<?php echo esc_url($image); ?>" alt="" loading="lazy"<?php if (is_array($image_item)) : ?> style="object-position:<?php echo esc_attr(nw_fuel_css_number((float) $image_item['x']) . '% ' . nw_fuel_css_number((float) $image_item['y']) . '%'); ?>"<?php endif; ?>>
     <?php endif; ?>
   </span>
   <span class="home-product__body">

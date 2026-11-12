@@ -1211,36 +1211,14 @@ function nw_fuel_product_photo_ids(int $product_id): array
  */
 function nw_fuel_product_gallery_urls(int $product_id): array
 {
-    $gallery = [];
-
-    foreach (nw_fuel_product_photo_ids($product_id) as $attachment_id) {
-        $url = wp_get_attachment_image_url($attachment_id, 'large');
-        if ($url) {
-            $gallery[] = $url;
-        }
+    if (function_exists('nw_fuel_product_gallery_items')) {
+        return array_values(array_map(
+            static fn (array $item): string => (string) $item['url'],
+            nw_fuel_product_gallery_items($product_id)
+        ));
     }
 
-    if ($gallery === []) {
-        $from_remote = [];
-        $remote      = (string) get_post_meta($product_id, '_nw_remote_image', true);
-        if ($remote !== '') {
-            $from_remote[] = nw_fuel_resolve_image_url($remote);
-        }
-        foreach (nw_fuel_json_meta($product_id, '_nw_remote_gallery') as $url) {
-            if (is_string($url) && $url !== '') {
-                $from_remote[] = nw_fuel_resolve_image_url($url);
-            }
-        }
-        $gallery = array_values(array_unique(array_filter($from_remote)));
-    }
-
-    $gallery = array_slice(array_values(array_unique($gallery)), 0, NW_FUEL_PRODUCT_PHOTOS_MAX);
-
-    if ($gallery === []) {
-        $gallery[] = nw_fuel_product_placeholder_url();
-    }
-
-    return $gallery;
+    return [nw_fuel_product_placeholder_url()];
 }
 
 /**
