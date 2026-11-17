@@ -650,7 +650,15 @@ function nw_fuel_apply_inventory_price_and_qty(WC_Product $product, array $row, 
         if ($only_present && ! array_key_exists($column, $row)) {
             continue;
         }
-        update_post_meta($product_id, $meta_key, nw_fuel_inventory_parse_money((string) ($row[$column] ?? '')));
+        $raw_value = (string) ($row[$column] ?? '');
+        if ($column === 'CostPCore' && trim($raw_value) === '') {
+            $raw_value = '0';
+        }
+        $value = nw_fuel_inventory_parse_money($raw_value);
+        if ($column === 'CostPCore') {
+            $value = number_format(max(0.0, (float) $value), 2, '.', '');
+        }
+        update_post_meta($product_id, $meta_key, $value);
     }
 
     if (function_exists('nw_fuel_price_review_record_history')) {

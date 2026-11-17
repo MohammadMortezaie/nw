@@ -1349,7 +1349,7 @@ function nw_fuel_nav_state(): array
 /**
  * Render inventory block.
  *
- * @param array{price: float|int, quantity: int, currency?: string} $inventory
+ * @param array{price: float|int, quantity: int, currency?: string, core?: float|int} $inventory
  */
 function nw_fuel_render_inventory(array $inventory, string $variant = 'card'): void
 {
@@ -1358,6 +1358,7 @@ function nw_fuel_render_inventory(array $inventory, string $variant = 'card'): v
     $status     = nw_fuel_stock_status($quantity);
     $show_price = ! empty($inventory['show_price']);
     $price      = (float) ($inventory['display_price'] ?? $inventory['price'] ?? 0);
+    $core       = (float) ($inventory['core'] ?? 0);
     $qty_label  = nw_fuel_quantity_display($quantity);
 
     if ($variant === 'card') {
@@ -1383,6 +1384,15 @@ function nw_fuel_render_inventory(array $inventory, string $variant = 'card'): v
     echo '<div><p class="inventory__label">' . esc_html__('Quantity', 'nw-fuel') . '</p><p class="inventory__qty">' . esc_html($qty_label) . '</p></div>';
     echo '<div><p class="inventory__label">' . esc_html__('Availability', 'nw-fuel') . '</p><span class="inventory__badge inventory__badge--' . esc_attr($status) . '">' . esc_html(nw_fuel_stock_label($quantity)) . '</span></div>';
     echo '</div>';
+    if ($core > 0) {
+        echo '<div class="inventory__core">';
+        echo '<details class="inventory__core-help">';
+        echo '<summary aria-label="' . esc_attr__('Core charge details', 'nw-fuel') . '"><span class="inventory__core-summary-copy"><span class="inventory__label">' . esc_html__('Core', 'nw-fuel') . '</span><span class="inventory__core-price">' . esc_html(nw_fuel_format_price($core, $currency)) . '</span></span><span class="inventory__core-help-icon" aria-hidden="true">?</span></summary>';
+        echo '<div class="inventory__core-help-panel"><button type="button" class="inventory__core-help-close" data-core-help-close aria-label="' . esc_attr__('Close core charge details', 'nw-fuel') . '">&times;</button>';
+        echo '<p>' . esc_html__('The core charge is a refundable deposit for your old part. Return your old part in acceptable condition to receive your core refund.', 'nw-fuel') . '</p></div>';
+        echo '</details>';
+        echo '</div>';
+    }
     if ($status === 'out_of_stock') {
         echo '<p class="inventory__note">' . esc_html__('Out of stock right now. Call us to check lead time or place a special order.', 'nw-fuel') . '</p>';
     }
@@ -1392,7 +1402,7 @@ function nw_fuel_render_inventory(array $inventory, string $variant = 'card'): v
 /**
  * Woo inventory array from product.
  *
- * @return array{price: float, quantity: int, currency: string}|null
+ * @return array{price: float, quantity: int, currency: string, core: float}|null
  */
 function nw_fuel_product_inventory(int $product_id): ?array
 {
@@ -1415,7 +1425,8 @@ function nw_fuel_product_inventory(int $product_id): ?array
     }
 
     $quantity = (int) $product->get_stock_quantity();
-    if ($price <= 0 && ! $product->managing_stock() && $quantity <= 0) {
+    $core     = max(0.0, (float) get_post_meta($product_id, '_nw_cost_p_core', true));
+    if ($price <= 0 && ! $product->managing_stock() && $quantity <= 0 && $core <= 0) {
         return null;
     }
 
@@ -1425,6 +1436,7 @@ function nw_fuel_product_inventory(int $product_id): ?array
         'show_price'    => $price > 0,
         'quantity'      => $quantity,
         'currency'      => 'CAD',
+        'core'          => $core,
     ];
 }
 

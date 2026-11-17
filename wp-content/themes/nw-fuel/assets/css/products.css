@@ -1513,6 +1513,10 @@ body.page-products {
   border-top: 1px solid var(--home-gray-200);
   padding-top: 1rem;
 }
+.page-products .inventory__core { border-top-color: var(--home-gray-200); }
+.page-products .inventory__core-help-icon { border-color: var(--home-gray-400); color: var(--home-gray-600); }
+.page-products .inventory__core-help[open] .inventory__core-help-icon { background: var(--home-black); color: #fff; }
+.page-products .inventory__core-help-panel { border-color: var(--home-gray-200); border-radius: 0; background: var(--home-gray-100); }
 .page-products .inventory__badge {
   border-radius: 0;
   font-size: 0.6875rem;

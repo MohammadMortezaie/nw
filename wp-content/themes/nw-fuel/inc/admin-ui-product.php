@@ -63,6 +63,9 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
     $level3    = (string) get_post_meta($post->ID, '_nw_special2_total', true);
     $level4    = (string) get_post_meta($post->ID, '_nw_special3_total', true);
     $core      = (string) get_post_meta($post->ID, '_nw_cost_p_core', true);
+    if ($core === '') {
+        $core = '0.00';
+    }
     $short     = (string) get_post_meta($post->ID, '_nw_short_description', true);
     $vehicles = array_values(array_map('strval', nw_fuel_json_meta($post->ID, '_nw_compatible_vehicles')));
     $alts     = function_exists('nw_fuel_get_search_alts') ? nw_fuel_get_search_alts($post->ID) : [];
@@ -139,7 +142,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
           </div>
         </div>
         <h3 class="nw-admin-panel__title" style="margin-top:16px;"><?php esc_html_e('Pricing', 'nw-fuel'); ?></h3>
-        <p class="nw-admin-panel__help"><?php esc_html_e('Retail (column H) is public. Levels 1–4 are columns I–L and show only to partners with that discount level. Core (column N) is stored for sale later.', 'nw-fuel'); ?></p>
+        <p class="nw-admin-panel__help"><?php esc_html_e('Retail (column H) is public. Levels 1–4 are columns I–L and show only to partners with that discount level. Cost Per Core (column N) appears on the product page only when it is greater than zero.', 'nw-fuel'); ?></p>
         <div class="nw-admin-grid nw-admin-grid--2">
           <?php
           nw_fuel_admin_field([
@@ -178,7 +181,7 @@ function nw_fuel_render_product_admin_ui(WP_Post $post): void
               'api_managed' => $api_managed,
           ]);
           nw_fuel_admin_field([
-              'label'       => __('Core (column N)', 'nw-fuel'),
+              'label'       => __('Cost Per Core (column N)', 'nw-fuel'),
               'name'        => '_nw_cost_p_core',
               'value'       => $core,
               'placeholder' => '0.00',
@@ -513,7 +516,9 @@ function nw_fuel_save_product_admin_fields(int $post_id): void
     update_post_meta($post_id, '_nw_special1_total', $parse_money(sanitize_text_field(wp_unslash($_POST['_nw_special1_total'] ?? ''))));
     update_post_meta($post_id, '_nw_special2_total', $parse_money(sanitize_text_field(wp_unslash($_POST['_nw_special2_total'] ?? ''))));
     update_post_meta($post_id, '_nw_special3_total', $parse_money(sanitize_text_field(wp_unslash($_POST['_nw_special3_total'] ?? ''))));
-    update_post_meta($post_id, '_nw_cost_p_core', $parse_money(sanitize_text_field(wp_unslash($_POST['_nw_cost_p_core'] ?? ''))));
+    $core = $parse_money(sanitize_text_field(wp_unslash($_POST['_nw_cost_p_core'] ?? '0')));
+    $core = number_format(max(0.0, (float) $core), 2, '.', '');
+    update_post_meta($post_id, '_nw_cost_p_core', $core);
     update_post_meta($post_id, '_nw_short_description', sanitize_textarea_field(wp_unslash($_POST['_nw_short_description'] ?? '')));
     nw_fuel_save_product_photos($post_id);
     if (! function_exists('nw_fuel_rank_math_active') || ! nw_fuel_rank_math_active()) {

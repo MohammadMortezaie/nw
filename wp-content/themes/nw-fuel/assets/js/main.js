@@ -24,6 +24,20 @@
       .catch(function () { return []; });
   }
 
+  // On some desktop browsers the search input's blur handler can remove a
+  // suggestion between mousedown and click. Navigate on the first primary
+  // mouse press, while preserving modified clicks and keyboard navigation.
+  function enableImmediateSuggestionNavigation(container) {
+    if (!container) return;
+    container.addEventListener('mousedown', function (event) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest('a[href]');
+      if (!link || !container.contains(link)) return;
+      event.preventDefault();
+      window.location.assign(link.href);
+    });
+  }
+
   function debounce(fn, wait) {
     let timer = null;
     return function () {
@@ -275,6 +289,17 @@
           btn.setAttribute('aria-expanded', 'true');
         }
       });
+    });
+  });
+
+  // Core-charge disclosure has an explicit close control in addition to its summary.
+  document.querySelectorAll('[data-core-help-close]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const details = button.closest('.inventory__core-help');
+      if (!details) return;
+      details.removeAttribute('open');
+      const summary = details.querySelector('summary');
+      if (summary) summary.focus();
     });
   });
 
@@ -666,7 +691,18 @@
       if (!suggestionsEl || !input) return;
       suggestionsEl.hidden = true;
       suggestionsEl.innerHTML = '';
+      suggestionsEl.removeAttribute('aria-busy');
       input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
+    }
+
+    function renderSearchStatus(state, message) {
+      if (!suggestionsEl || !input) return;
+      suggestionsEl.innerHTML = '<div class="hero-search__status hero-search__status--' + state + '" role="status" aria-live="polite">' + escapeHtml(message) + '</div>';
+      suggestionsEl.hidden = false;
+      suggestionsEl.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
+      input.setAttribute('aria-expanded', 'true');
       input.removeAttribute('aria-activedescendant');
       activeIndex = -1;
     }
@@ -675,13 +711,18 @@
       if (!suggestionsEl || !input) return;
 
       const trimmed = query.trim();
-      if (trimmed.length < MIN_QUERY_LEN || !matches.length) {
+      if (trimmed.length < MIN_QUERY_LEN) {
         hideSuggestions();
         return;
       }
 
+      if (!matches.length) {
+        renderSearchStatus('empty', 'Nothing found for “' + trimmed + '”');
+        return;
+      }
+
       const encodedQuery = encodeURIComponent(trimmed);
-      let html = '';
+      let html = '<div class="hero-search__status hero-search__status--results" role="status" aria-live="polite">' + matches.length + ' result' + (matches.length === 1 ? '' : 's') + ' found</div>';
 
       matches.forEach(function (product, index) {
         const optionId = optionPrefix + index;
@@ -701,6 +742,7 @@
 
       suggestionsEl.innerHTML = html;
       suggestionsEl.hidden = false;
+      suggestionsEl.setAttribute('aria-busy', 'false');
       input.setAttribute('aria-expanded', 'true');
       activeIndex = -1;
     }
@@ -712,6 +754,7 @@
         hideSuggestions();
         return;
       }
+      renderSearchStatus('loading', 'Searching…');
       searchProducts(value).then(function (matches) {
         if (input.value !== value) return;
         renderSuggestions(matches, value);
@@ -732,6 +775,8 @@
     }
 
     if (!input) return;
+
+    enableImmediateSuggestionNavigation(suggestionsEl);
 
     if (input.value.trim()) setExpanded(true);
 
@@ -870,9 +915,21 @@
       if (!suggestionsEl || !input) return;
       suggestionsEl.hidden = true;
       suggestionsEl.innerHTML = '';
+      suggestionsEl.removeAttribute('aria-busy');
       input.setAttribute('aria-expanded', 'false');
       activeIndex = -1;
       heroForm.classList.remove('is-suggestions-open');
+    }
+
+    function renderSearchStatus(state, message) {
+      if (!suggestionsEl || !input) return;
+      suggestionsEl.innerHTML = '<div class="hero-search__status hero-search__status--' + state + '" role="status" aria-live="polite">' + escapeHtml(message) + '</div>';
+      suggestionsEl.hidden = false;
+      suggestionsEl.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
+      input.setAttribute('aria-expanded', 'true');
+      input.removeAttribute('aria-activedescendant');
+      heroForm.classList.add('is-suggestions-open');
+      activeIndex = -1;
     }
 
     function setActiveOption(options) {
@@ -891,13 +948,18 @@
       if (!suggestionsEl || !input) return;
 
       const trimmed = query.trim();
-      if (trimmed.length < MIN_QUERY_LEN || !matches.length) {
+      if (trimmed.length < MIN_QUERY_LEN) {
         hideSuggestions();
         return;
       }
 
+      if (!matches.length) {
+        renderSearchStatus('empty', 'Nothing found for “' + trimmed + '”');
+        return;
+      }
+
       const encodedQuery = encodeURIComponent(trimmed);
-      let html = '';
+      let html = '<div class="hero-search__status hero-search__status--results" role="status" aria-live="polite">' + matches.length + ' result' + (matches.length === 1 ? '' : 's') + ' found</div>';
 
       matches.forEach(function (product, index) {
         const optionId = 'hero-search-option-' + index;
@@ -917,6 +979,7 @@
 
       suggestionsEl.innerHTML = html;
       suggestionsEl.hidden = false;
+      suggestionsEl.setAttribute('aria-busy', 'false');
       input.setAttribute('aria-expanded', 'true');
       heroForm.classList.add('is-suggestions-open');
       activeIndex = -1;
@@ -929,6 +992,7 @@
         hideSuggestions();
         return;
       }
+      renderSearchStatus('loading', 'Searching…');
       searchProducts(value).then(function (matches) {
         if (input.value !== value) return;
         renderSuggestions(matches, value);
@@ -981,6 +1045,8 @@
     }
 
     if (input) {
+      enableImmediateSuggestionNavigation(suggestionsEl);
+
       input.addEventListener('focus', function () {
         syncGhost();
         updateSuggestions();
@@ -1113,6 +1179,7 @@
     const iframe = overlay.querySelector('iframe');
     const video = overlay.querySelector('video');
     const closeBtn = overlay.querySelector('.gallery-lightbox__close');
+    const stage = overlay.querySelector('.gallery-lightbox__stage');
     const prevBtn = overlay.querySelector('.gallery-lightbox__nav--prev');
     const nextBtn = overlay.querySelector('.gallery-lightbox__nav--next');
     let lightboxItems = [];
@@ -1272,7 +1339,7 @@
     }
 
     overlay.addEventListener('click', function (event) {
-      if (event.target === overlay || event.target === closeBtn) {
+      if (event.target === overlay || event.target === stage || event.target === closeBtn) {
         closeLightbox();
       }
     });
